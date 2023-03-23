@@ -32,6 +32,7 @@
     "eslint-plugin-svelte": "^2.22.0",
     "eslint-plugin-vitest": "^0.0.54",
     "husky": "^8.0.3",
+    "lint-staged": "^13.2.0",
     "prettier": "^2.8.6",
     "prettier-plugin-svelte": "^2.10.0",
     "svelte": "^3.57.0",
@@ -40,5 +41,20 @@
     "typescript": "^5.0.2",
     "vite": "^4.2.1",
     "vitest": "^0.29.7"
+  },
+  "lint-staged": {
+    "*.{js,svelte,ts}": [
+      "eslint --cache --fix",
+      "prettier --write"
+    ],
+    "**/(package|tsconfig(.*)?).json": [
+      "prettier --write"
+    ],
+    "(pnpm-workspace|.github/**/*).{yml,yaml}": [
+      "prettier --write"
+    ],
+    "((.github/**/*)|(README)|(**/(README))).md": [
+      "prettier --write"
+    ]
   }
 }
