@@ -40,6 +40,7 @@ const config = {
             allowUnusedLabels: false /* Disable error reporting for unused labels. */,
             allowUnreachableCode: false /* Disable error reporting for unreachable code. */,
           },
+          include: [...conf.include, '../playwright.config.ts'],
         };
       },
     },
