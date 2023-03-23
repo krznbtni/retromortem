@@ -15,8 +15,9 @@
     "lint:eslint": "eslint .",
     "lint:prettier": "prettier --plugin-search-dir . --check .",
     "preview": "vite preview",
-    "test": "playwright test",
-    "test:unit": "vitest",
+    "test": "pnpm test:playwright && pnpm test:unit",
+    "test:playwright": "playwright test",
+    "test:unit": "vitest run",
     "prepare": "husky install"
   },
   "devDependencies": {
