@@ -14,11 +14,11 @@
     "lint": "npm run lint:prettier && npm run lint:eslint",
     "lint:eslint": "eslint .",
     "lint:prettier": "prettier --plugin-search-dir . --check .",
+    "prepare": "husky install",
     "preview": "vite preview",
     "test": "pnpm test:playwright && pnpm test:unit",
     "test:playwright": "playwright test",
-    "test:unit": "vitest run",
-    "prepare": "husky install"
+    "test:unit": "vitest run"
   },
   "devDependencies": {
     "@playwright/test": "^1.32.0",
@@ -31,6 +31,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-svelte": "^2.22.0",
     "eslint-plugin-vitest": "^0.0.54",
+    "husky": "^8.0.3",
     "prettier": "^2.8.6",
     "prettier-plugin-svelte": "^2.10.0",
     "svelte": "^3.57.0",
@@ -38,7 +39,6 @@
     "tslib": "^2.5.0",
     "typescript": "^5.0.2",
     "vite": "^4.2.1",
-    "vitest": "^0.29.7",
-    "husky": "^8.0.3"
+    "vitest": "^0.29.7"
   }
 }
