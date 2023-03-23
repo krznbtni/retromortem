@@ -8,16 +8,16 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "dev": "vite dev",
-    "format": "npm run format:prettier && npm run format:eslint",
+    "format": "pnpm format:prettier && pnpm format:eslint",
     "format:eslint": "eslint . --fix",
     "format:prettier": "prettier --plugin-search-dir . --write .",
-    "lint": "npm run lint:prettier && npm run lint:eslint",
+    "lint": "pnpm lint:prettier && pnpm lint:eslint",
     "lint:eslint": "eslint .",
     "lint:prettier": "prettier --plugin-search-dir . --check .",
     "prepare": "husky install",
     "preview": "vite preview",
-    "test": "pnpm test:playwright && pnpm test:unit",
-    "test:playwright": "playwright test",
+    "test": "pnpm test:e2e && pnpm test:unit",
+    "test:e2e": "playwright test",
     "test:unit": "vitest run"
   },
   "lint-staged": {
@@ -63,5 +63,6 @@
     "typescript": "^5.0.2",
     "vite": "^4.2.1",
     "vitest": "^0.29.7"
-  }
+  },
+  "packageManager": "pnpm@7.30.0"
 }
