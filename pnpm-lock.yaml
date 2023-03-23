@@ -11,7 +11,7 @@ specifiers:
   eslint-plugin-prettier: ^4.2.1
   eslint-plugin-svelte: ^2.22.0
   eslint-plugin-vitest: ^0.0.54
-  husky: ^8.0.0
+  husky: ^8.0.3
   prettier: ^2.8.6
   prettier-plugin-svelte: ^2.10.0
   svelte: ^3.57.0
