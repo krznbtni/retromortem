@@ -10,23 +10,14 @@ export const GET = (async({url, locals, cookies}) => {
   const state = url.searchParams.get('state');
   const code = url.searchParams.get('code');
 
-  if (!state || !code || !expectedProviderName || !expectedProviderState) {
+  if (!state || !code || !expectedProviderName || !expectedProviderState || expectedProviderState !== state) {
     throw redirect(303, '/login');
   }
 
   const authMethods = await locals.pb.collection('users').listAuthMethods();
-  
-  if (!authMethods) {
-    throw redirect(303, '/login');
-  }
-
   const provider = authMethods.authProviders.find(authProvider => authProvider.name === expectedProviderName)
 
   if (!provider) {
-    throw redirect(303, '/login');
-  }
-
-  if (expectedProviderState !== state) {
     throw redirect(303, '/login');
   }
 
