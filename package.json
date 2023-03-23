@@ -16,7 +16,8 @@
     "lint:prettier": "prettier --plugin-search-dir . --check .",
     "preview": "vite preview",
     "test": "playwright test",
-    "test:unit": "vitest"
+    "test:unit": "vitest",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@playwright/test": "^1.32.0",
@@ -36,6 +37,7 @@
     "tslib": "^2.5.0",
     "typescript": "^5.0.2",
     "vite": "^4.2.1",
-    "vitest": "^0.29.7"
+    "vitest": "^0.29.7",
+    "husky": "^8.0.0"
   }
 }
