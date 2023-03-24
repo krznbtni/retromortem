@@ -1,7 +1,7 @@
 <script lang="ts">
 import '../app.css';
 
-import NavBar from '$lib/components/layout/NavBar.svelte';
+import {NavBar} from '$lib/components';
 </script>
 
 <div class="min-h-full">
