@@ -40,6 +40,9 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
+  "dependencies": {
+    "pocketbase": "^0.12.1"
+  },
   "devDependencies": {
     "@playwright/test": "^1.32.0",
     "@sveltejs/adapter-auto": "^2.0.0",
@@ -73,8 +76,5 @@
     "vite": "^4.2.1",
     "vitest": "^0.29.7"
   },
-  "packageManager": "pnpm@7.30.0",
-  "dependencies": {
-    "pocketbase": "^0.12.1"
-  }
+  "packageManager": "pnpm@7.30.0"
 }
