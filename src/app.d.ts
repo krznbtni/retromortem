@@ -5,11 +5,14 @@ declare global {
   namespace App {
     interface Locals {
       pb: PocketBase;
-      user: undefined | User;
+      user: User | undefined;
+    }
+
+    interface PageData {
+      user: User | undefined;
     }
 
     // interface Error {}
-    // interface PageData {}
     // interface Platform {}
   }
 }
