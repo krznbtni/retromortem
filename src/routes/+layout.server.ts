@@ -1,8 +1,13 @@
-import type { LayoutServerLoad } from './$types';
+import type {LayoutServerLoad} from './$types';
 
-export const load = (({ locals }) => {
-	return {
-		user: locals.user,
-	};
+export const load = (({locals}) => {
+  if (locals.user) {
+    return {
+      user: locals.user,
+    };
+  }
+
+  return {
+    user: undefined,
+  };
 }) satisfies LayoutServerLoad;
-  
