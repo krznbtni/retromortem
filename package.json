@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "svelte-kit sync && vite build",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "dev": "vite dev",
+    "dev": "svelte-kit sync && vite dev",
     "format": "pnpm format:prettier && pnpm format:eslint",
     "format:eslint": "eslint . --fix",
     "format:prettier": "prettier --plugin-search-dir . --write .",
@@ -51,7 +51,7 @@
     "eslint": "^8.36.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-svelte": "^2.22.0",
+    "eslint-plugin-svelte": "^2.23.1",
     "eslint-plugin-vitest": "^0.0.54",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.0",
@@ -64,5 +64,8 @@
     "vite": "^4.2.1",
     "vitest": "^0.29.7"
   },
-  "packageManager": "pnpm@7.30.0"
+  "packageManager": "pnpm@7.30.0",
+  "dependencies": {
+    "pocketbase": "^0.12.1"
+  }
 }

@@ -11,10 +11,11 @@ specifiers:
   eslint: ^8.36.0
   eslint-config-prettier: ^8.8.0
   eslint-plugin-prettier: ^4.2.1
-  eslint-plugin-svelte: ^2.22.0
+  eslint-plugin-svelte: ^2.23.1
   eslint-plugin-vitest: ^0.0.54
   husky: ^8.0.3
   lint-staged: ^13.2.0
+  pocketbase: ^0.12.1
   prettier: ^2.8.6
   prettier-plugin-svelte: ^2.10.0
   svelte: ^3.57.0
@@ -23,6 +24,9 @@ specifiers:
   typescript: ^5.0.2
   vite: ^4.2.1
   vitest: ^0.29.7
+
+dependencies:
+  pocketbase: 0.12.1
 
 devDependencies:
   '@playwright/test': 1.32.0
@@ -35,7 +39,7 @@ devDependencies:
   eslint: 8.36.0
   eslint-config-prettier: 8.8.0_eslint@8.36.0
   eslint-plugin-prettier: 4.2.1_ose2zoovovx4ulolhifz3tfzx4
-  eslint-plugin-svelte: 2.22.0_wzem237sbvnwe7n34ytc5phasy
+  eslint-plugin-svelte: 2.23.1_wzem237sbvnwe7n34ytc5phasy
   eslint-plugin-vitest: 0.0.54_j4766f7ecgqbon3u7zlxn5zszu
   husky: 8.0.3
   lint-staged: 13.2.0
@@ -1308,8 +1312,8 @@ packages:
       prettier-linter-helpers: 1.0.0
     dev: true
 
-  /eslint-plugin-svelte/2.22.0_wzem237sbvnwe7n34ytc5phasy:
-    resolution: {integrity: sha512-zqLpvXjBtOz7XbX9JBi7ti+8t6IVKjv8AxLlZDv29VJFvO0d+MrCEa4b3eiMMFTZOL+EQ+UWXoiJBkw/vSsmqA==}
+  /eslint-plugin-svelte/2.23.1_wzem237sbvnwe7n34ytc5phasy:
+    resolution: {integrity: sha512-hBlptt4auhlae+/cSsOdaB7MV+LcXpyOV0bMAQxXi72oAlCGBCWBSdQbiRmn1OkikfhQKkAe7gjk+XseBYAbyA==}
     engines: {node: ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: ^7.0.0 || ^8.0.0-0
@@ -1318,10 +1322,10 @@ packages:
       svelte:
         optional: true
     dependencies:
+      '@eslint-community/eslint-utils': 4.3.0_eslint@8.36.0
       '@jridgewell/sourcemap-codec': 1.4.14
       debug: 4.3.4
       eslint: 8.36.0
-      eslint-utils: 3.0.0_eslint@8.36.0
       esutils: 2.0.3
       known-css-properties: 0.27.0
       postcss: 8.4.21
@@ -1361,21 +1365,6 @@ packages:
     dependencies:
       esrecurse: 4.3.0
       estraverse: 5.3.0
-    dev: true
-
-  /eslint-utils/3.0.0_eslint@8.36.0:
-    resolution: {integrity: sha512-uuQC43IGctw68pJA1RgbQS8/NP7rch6Cwd4j3ZBtgo4/8Flj4eGE7ZYSZRN3iq5pVUv6GPdW5Z1RFleo84uLDA==}
-    engines: {node: ^10.0.0 || ^12.0.0 || >= 14.0.0}
-    peerDependencies:
-      eslint: '>=5'
-    dependencies:
-      eslint: 8.36.0
-      eslint-visitor-keys: 2.1.0
-    dev: true
-
-  /eslint-visitor-keys/2.1.0:
-    resolution: {integrity: sha512-0rSmRBzXgDzIsD6mGdJgevzgezI534Cer5L/vyMX0kHzT/jiB43jRhd9YUlMGYLQy2zprNmoT8qasCGtY+QaKw==}
-    engines: {node: '>=10'}
     dev: true
 
   /eslint-visitor-keys/3.3.0:
@@ -2414,6 +2403,10 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
     dev: true
+
+  /pocketbase/0.12.1:
+    resolution: {integrity: sha512-kihThVla/JontCGA2zVGuxk1vWtz/yt7FqnL241oxd+w7RBVNzLIRKN6GolnY9DGOekNmFRb57CL24sbUm4wJA==}
+    dev: false
 
   /postcss-load-config/3.1.4_postcss@8.4.21:
     resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
