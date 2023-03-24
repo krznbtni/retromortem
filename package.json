@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "svelte-kit sync && vite build",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "dev": "vite dev",
+    "dev": "svelte-kit sync && vite dev",
     "format": "pnpm format:prettier && pnpm format:eslint",
     "format:eslint": "eslint . --fix",
     "format:prettier": "prettier --plugin-search-dir . --write .",
