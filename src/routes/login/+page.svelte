@@ -25,3 +25,5 @@ function gotoAuthProvider(oauthLink: OAuthLink) {
     <button on:click={() => gotoAuthProvider(oauthLink)}>{`Login with ${oauthLink.name}`}</button>
   {/each}
 {/if}
+
+<style lang="postcss"></style>
