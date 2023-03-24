@@ -20,6 +20,7 @@ specifiers:
   eslint-plugin-vitest: ^0.0.54
   husky: ^8.0.3
   lint-staged: ^13.2.0
+  object-to-formdata: ^4.4.2
   pocketbase: ^0.12.1
   postcss: ^8.4.21
   postcss-load-config: ^4.0.1
@@ -36,6 +37,7 @@ specifiers:
   vitest: ^0.29.7
 
 dependencies:
+  object-to-formdata: 4.4.2
   pocketbase: 0.12.1
 
 devDependencies:
@@ -2915,6 +2917,10 @@ packages:
   /object-inspect/1.12.3:
     resolution: {integrity: sha512-geUvdk7c+eizMNUDkRpW1wJwgfOiOeHbxBR/hLXK1aT6zmVSO0jsQcs7fj6MGw89jC/cjGfLcNOrtMYtGqm81g==}
     dev: true
+
+  /object-to-formdata/4.4.2:
+    resolution: {integrity: sha512-fu6UDjsqIfFUu/B3GXJ2IFnNAL/YbsC1PPzqDIFXcfkhdYjTD3K4zqhyD/lZ6+KdP9O/64YIPckIOiS5ouXwLA==}
+    dev: false
 
   /once/1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
