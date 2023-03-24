@@ -3,6 +3,9 @@ name: CI
 on:
   pull_request:
 
+env:
+  POCKETBASE_URL: ${{ secrets.POCKETBASE_URL }}
+
 jobs:
   lint:
     runs-on: ubuntu-latest
