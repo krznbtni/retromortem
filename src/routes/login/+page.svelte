@@ -5,9 +5,17 @@ import type {PageData} from './$types';
 
 export let data: PageData;
 
+let loading = false;
+
 $: oauthLinks = data.oauthLinks;
 
 function gotoAuthProvider(oauthLink: OAuthLink) {
+  if (loading) {
+    return;
+  }
+
+  loading = true;
+
   if (browser) {
     document.cookie = `state=${oauthLink.state};`;
     document.cookie = `name=${oauthLink.name};`;
@@ -23,7 +31,7 @@ function gotoAuthProvider(oauthLink: OAuthLink) {
 
     <div class="card-actions">
       {#each oauthLinks as oauthLink (oauthLink.name)}
-        <button class="btn" on:click={() => gotoAuthProvider(oauthLink)}>
+        <button class="btn" class:loading on:click={() => gotoAuthProvider(oauthLink)}>
           Log in with {oauthLink.name}
         </button>
       {/each}
