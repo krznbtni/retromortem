@@ -40,7 +40,7 @@ const submitCreateRetro = (({data}) => {
 }) satisfies SubmitFunction;
 </script>
 
-<div class="flex justify-center w-full h-full p-2">
+<div class="flex justify-center w-full h-full">
   <form
     action="?/create"
     method="POST"
