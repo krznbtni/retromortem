@@ -11,6 +11,7 @@ export interface Retro {
   scheduled?: string;
   inviteLink?: string;
   state: RetroState;
+  id: string;
 }
 
 export interface RetroCreateRequest {
