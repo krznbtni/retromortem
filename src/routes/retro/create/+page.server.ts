@@ -1,16 +1,22 @@
 import {error, fail, redirect} from '@sveltejs/kit';
 import type {Actions, PageServerLoad} from './$types';
-import {serialize} from 'object-to-formdata';
 import type {ClientResponseError} from 'pocketbase';
-import type {Retro} from '$lib/types/retro';
+import type {RetroCreateRequest} from '$lib/types/retro';
 
 export const load = (({locals}) => {
   if (!locals.pb.authStore.isValid) {
     throw redirect(303, '/login');
   }
+
+  // const retro = await locals.pb.collection('retrospectives').getOne('2ijjvdbd3sx4kjc');
+  // retro.participants = ['4l2m06194g3lnzi', 'pz4qjqitdz53xux'];
+  // console.log('load -> retro:', retro);
+
+  // const updatedRetro = await locals.pb.collection('retrospectives').update(retro.id, retro);
+  // console.log('load -> updatedRetro:', updatedRetro);
 }) satisfies PageServerLoad;
 
-interface Submission extends Retro {
+interface Submission extends RetroCreateRequest {
   date: string;
   time: string;
 }
@@ -44,7 +50,22 @@ export const actions: Actions = {
     // }
 
     try {
-      await locals.pb.collection('retrospectives').create(serialize(formDataParsed));
+      const retrospectiveResult = await locals.pb
+        .collection('retrospectives')
+        .create(formDataParsed);
+
+      if (formDataParsed.questions) {
+        const parsedBodyQuestions = JSON.parse(formDataParsed.questions) as Array<string>;
+
+        for (const question of parsedBodyQuestions) {
+          await locals.pb.collection('questions').create({
+            title: question,
+            creator: locals.user?.id,
+            retrospective: retrospectiveResult.id,
+          });
+        }
+      }
+
       return {success: true};
     } catch (err) {
       const e = err as ClientResponseError;
