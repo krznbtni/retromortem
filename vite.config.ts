@@ -10,11 +10,11 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [
-    sveltekit(),
     barrel({
       pathToComponentsDir: path.resolve(__dirname, 'src/lib/components'),
       pathAliasToComponentsDir: '$lib/components',
     }),
+    sveltekit(),
   ],
   server: {
     port: 3000,
