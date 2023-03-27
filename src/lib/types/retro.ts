@@ -9,7 +9,17 @@ export interface Retro {
   name: string;
   participants?: Array<string>;
   scheduled?: string;
-  questions?: Array<string>;
+  inviteLink?: string;
+  state: RetroState;
+}
+
+export interface RetroCreateRequest {
+  organizer: string;
+  description?: string;
+  name: string;
+  participants?: Array<string>;
+  scheduled?: string;
+  questions?: string;
   inviteLink?: string;
   state: RetroState;
 }
