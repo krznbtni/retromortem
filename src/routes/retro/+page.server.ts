@@ -4,6 +4,7 @@ import type {Actions, PageServerLoad} from './$types';
 import type {ClientResponseError} from 'pocketbase';
 
 import {fetchUsersRetros} from '$lib/server/retro/fetch-users-retros';
+import {Collections} from '$lib/types/pocketbase-types';
 
 export const load = (({locals}) => {
   if (!locals.pb.authStore.isValid) {
@@ -32,7 +33,7 @@ export const actions: Actions = {
     }
 
     try {
-      await locals.pb.collection('projects').delete(body.id);
+      await locals.pb.collection(Collections.Retrospectives).delete(body.id);
     } catch (err) {
       const e = err as ClientResponseError;
       console.log('Error: ', e);

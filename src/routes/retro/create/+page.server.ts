@@ -1,7 +1,7 @@
 import {error, fail, redirect} from '@sveltejs/kit';
 import type {Actions, PageServerLoad} from './$types';
 import type {ClientResponseError} from 'pocketbase';
-import type {RetroCreateRequest} from '$lib/types/retro';
+import {Collections, type RetrospectivesRecord} from '$lib/types/pocketbase-types';
 
 export const load = (({locals}) => {
   if (!locals.pb.authStore.isValid) {
@@ -16,9 +16,10 @@ export const load = (({locals}) => {
   // console.log('load -> updatedRetro:', updatedRetro);
 }) satisfies PageServerLoad;
 
-interface Submission extends RetroCreateRequest {
+interface Submission extends RetrospectivesRecord {
   date: string;
   time: string;
+  questions: string;
 }
 
 export const actions: Actions = {
@@ -50,14 +51,14 @@ export const actions: Actions = {
 
     try {
       const retrospectiveResult = await locals.pb
-        .collection('retrospectives')
+        .collection(Collections.Retrospectives)
         .create(formDataParsed);
 
       if (formDataParsed.questions) {
         const parsedBodyQuestions = JSON.parse(formDataParsed.questions) as Array<string>;
 
         for (const question of parsedBodyQuestions) {
-          await locals.pb.collection('questions').create({
+          await locals.pb.collection(Collections.Questions).create({
             title: question,
             creator: locals.user?.id,
             retrospective: retrospectiveResult.id,

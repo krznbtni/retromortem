@@ -1,5 +1,6 @@
 import {OAUTH_REDIRECT_URL} from '$lib/constants';
 import type {OAuthLink} from '$lib/types/oauth';
+import {Collections} from '$lib/types/pocketbase-types';
 import {redirect} from '@sveltejs/kit';
 import type {PageServerLoad, RequestEvent} from './$types';
 
@@ -20,7 +21,7 @@ async function buildOauthLinks({locals, url}: RequestEvent): Promise<Array<OAuth
   const redirectURL = `${url.origin}${OAUTH_REDIRECT_URL}`;
   const oauthLinks: Array<OAuthLink> = [];
 
-  const authMethods = await locals.pb.collection('users').listAuthMethods();
+  const authMethods = await locals.pb.collection(Collections.Users).listAuthMethods();
 
   for (const provider of authMethods.authProviders) {
     const oauthLink: OAuthLink = {
