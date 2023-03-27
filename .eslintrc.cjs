@@ -51,5 +51,5 @@ module.exports = {
       {argsIgnorePattern: '^_', varsIgnorePattern: '^_'},
     ],
   },
-  ignorePatterns: ['*.cjs', 'svelte.config.js', 'node_modules', 'build'],
+  ignorePatterns: ['*.cjs', 'svelte.config.js', 'node_modules', 'build', '**/pocketbase-types.ts'],
 };
