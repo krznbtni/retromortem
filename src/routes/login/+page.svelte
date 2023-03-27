@@ -25,14 +25,14 @@ function gotoAuthProvider(oauthLink: OAuthLink) {
 }
 </script>
 
-<div class="card w-96 bg-base-100 shadow-xl mx-auto my-16">
+<div class="card max-w-sm bg-base-100 shadow-xl mx-auto my-16">
   <div class="card-body items-center text-center">
-    <h2 class="card-title">Hey cutie! Log in below</h2>
+    <h2 class="card-title mb-4">Hey cutie! Sign in below</h2>
 
-    <div class="card-actions">
+    <div class="flex flex-col card-actions w-full">
       {#each oauthLinks as oauthLink (oauthLink.name)}
-        <button class="btn" class:loading on:click={() => gotoAuthProvider(oauthLink)}>
-          Log in with {oauthLink.name}
+        <button class="btn w-full" class:loading on:click={() => gotoAuthProvider(oauthLink)}>
+          Sign in with {oauthLink.name}
         </button>
       {/each}
     </div>
