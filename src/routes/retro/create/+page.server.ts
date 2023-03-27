@@ -35,7 +35,6 @@ export const actions: Actions = {
     formDataParsed.scheduled = new Date(`${formDataParsed.date} ${formDataParsed.time}`)
       .toISOString()
       .replace('T', ' ');
-    console.log('create: -> formDataParsed:', formDataParsed);
 
     if (!formDataParsed.name) {
       return fail(400, {data: formDataParsed, errors: {name: 'You must enter a name'}});
@@ -65,14 +64,12 @@ export const actions: Actions = {
           });
         }
       }
-
-      return {success: true};
     } catch (err) {
       const e = err as ClientResponseError;
       console.log('Error: ', e);
       throw error(e.status, e.message);
     }
 
-    // throw redirect(303, '/');
+    throw redirect(303, '/retro');
   },
 };

@@ -10,8 +10,6 @@ let loading = false;
 let states = ['draft', 'published'];
 let questions: Array<string> = [];
 
-$: console.log(questions);
-
 function addQuestion(): void {
   questions = [...questions, ''];
 }
@@ -22,7 +20,6 @@ function deleteQuestion(index: number): void {
 
 const submitCreateRetro = (({data}) => {
   loading = true;
-
   data.append('questions', JSON.stringify(questions));
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -76,9 +73,6 @@ const submitCreateRetro = (({data}) => {
       type="time"
       disabled={loading}
     />
-
-    <!-- <Input id="url" label="Project URL" value={form?.data?.url} errors={form?.errors?.url} /> -->
-    <!-- <Input id="thumbnail" label="Thumbnail" type="file" errors={form?.errors?.thumbnail} /> -->
 
     <div class="form-control w-full max-w-lg mb-2">
       <span class="label font-medium pb-1 label-text">Questions</span>
