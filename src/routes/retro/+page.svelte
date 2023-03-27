@@ -1,7 +1,7 @@
 <script lang="ts">
 import type {PageData} from './$types';
 
-import {RetroListItem} from '$lib/components';
+import RetroListItem from '$lib/components/retro/RetroListItem.svelte';
 
 export let data: PageData;
 </script>

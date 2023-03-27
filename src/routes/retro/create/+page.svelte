@@ -1,7 +1,13 @@
 <script lang="ts">
 import {applyAction, enhance, type SubmitFunction} from '$app/forms';
 import {invalidateAll} from '$app/navigation';
-import {DatePicker, Input, InputGroup, Select, TextArea} from '$lib/components';
+
+import DatePicker from '$lib/components/common/DatePicker.svelte';
+import Input from '$lib/components/common/Input.svelte';
+import InputGroup from '$lib/components/common/InputGroup.svelte';
+import Select from '$lib/components/common/Select.svelte';
+import TextArea from '$lib/components/common/TextArea.svelte';
+
 import type {ActionData} from './$types';
 
 export let form: ActionData;
