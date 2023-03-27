@@ -4,3 +4,4 @@ export {default as InputGroup} from '$lib/components/common/InputGroup.svelte';
 export {default as Select} from '$lib/components/common/Select.svelte';
 export {default as TextArea} from '$lib/components/common/TextArea.svelte';
 export {default as NavBar} from '$lib/components/layout/NavBar.svelte';
+export {default as RetroListItem} from '$lib/components/retro/RetroListItem.svelte';
