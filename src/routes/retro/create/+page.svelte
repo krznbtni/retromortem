@@ -25,6 +25,10 @@ function deleteQuestion(index: number): void {
 }
 
 const submitCreateRetro = (({data}) => {
+  if (loading) {
+    return;
+  }
+
   loading = true;
   data.append('questions', JSON.stringify(questions));
 

@@ -5,11 +5,13 @@ import {ClientResponseError} from 'pocketbase';
 import {serializeNonPOJOs} from '$lib/serialize-non-pojos';
 import {Collections, type RetrospectiveResponse} from '$lib/types/pocketbase-types';
 
-export async function fetchRetro(locals: App.Locals, id: string): Promise<RetrospectiveResponse> {
+export async function fetchRetro<T = RetrospectiveResponse>(
+  locals: App.Locals,
+  id: string,
+  expand = '',
+): Promise<T> {
   try {
-    const retro = await locals.pb
-      .collection(Collections.Retrospective)
-      .getOne<RetrospectiveResponse>(id);
+    const retro = await locals.pb.collection(Collections.Retrospective).getOne<T>(id, {expand});
     return serializeNonPOJOs(retro);
   } catch (err) {
     console.error('fetchRetro -> Error:', err);
