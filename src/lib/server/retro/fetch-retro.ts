@@ -3,13 +3,13 @@ import {error} from '@sveltejs/kit';
 import {ClientResponseError} from 'pocketbase';
 
 import {serializeNonPOJOs} from '$lib/serialize-non-pojos';
-import {Collections, type RetrospectivesResponse} from '$lib/types/pocketbase-types';
+import {Collections, type RetrospectiveResponse} from '$lib/types/pocketbase-types';
 
-export async function fetchRetro(locals: App.Locals, id: string): Promise<RetrospectivesResponse> {
+export async function fetchRetro(locals: App.Locals, id: string): Promise<RetrospectiveResponse> {
   try {
     const retro = await locals.pb
-      .collection(Collections.Retrospectives)
-      .getOne<RetrospectivesResponse>(id);
+      .collection(Collections.Retrospective)
+      .getOne<RetrospectiveResponse>(id);
     return serializeNonPOJOs(retro);
   } catch (err) {
     console.error('fetchRetro -> Error:', err);

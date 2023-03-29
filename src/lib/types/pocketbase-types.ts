@@ -3,11 +3,11 @@
 */
 
 export enum Collections {
-	Actions = "actions",  
-	Answers = "answers",
-	Questions = "questions",
-	Retrospectives = "retrospectives",
-	Users = "users",  
+	Action = "action",
+	Answer = "answer",
+	Question = "question",
+	Retrospective = "retrospective",
+	Users = "users",
 }
 
 // Alias types for improved usability
@@ -34,44 +34,44 @@ export type AuthSystemFields<T = never> = {
 
 // Record types for each collection
 
-export enum ActionsStatusOptions {
+export enum ActionStatusOptions {
 	"draft" = "draft",
 	"in-progress" = "in-progress",
 	"completed" = "completed",
 	"cancelled" = "cancelled",
 }
-export type ActionsRecord = {
+export type ActionRecord = {
 	title: string
 	description?: string
 	retrospective: RecordIdString
 	assignees?: RecordIdString[]
-	status: ActionsStatusOptions
+	status: ActionStatusOptions
 }
 
-export type AnswersRecord = {
+export type AnswerRecord = {
 	content?: string
 	user: RecordIdString
 	question: RecordIdString
 }
 
-export type QuestionsRecord = {
+export type QuestionRecord = {
 	title: string
 	creator: RecordIdString
 	retrospective: RecordIdString
 }
 
-export enum RetrospectivesStateOptions {
+export enum RetrospectiveStateOptions {
 	"draft" = "draft",
 	"published" = "published",
 }
-export type RetrospectivesRecord = {
+export type RetrospectiveRecord = {
 	organizer: RecordIdString
 	description?: string
 	name: string
 	participants?: RecordIdString[]
 	scheduled?: IsoDateString
 	inviteLink?: string
-	state: RetrospectivesStateOptions
+	state: RetrospectiveStateOptions
 }
 
 export type UsersRecord = {
@@ -80,26 +80,26 @@ export type UsersRecord = {
 }
 
 // Response types include system fields and match responses from the PocketBase API
-export type ActionsResponse<Texpand = unknown> = ActionsRecord & BaseSystemFields<Texpand>
-export type AnswersResponse<Texpand = unknown> = AnswersRecord & BaseSystemFields<Texpand>
-export type QuestionsResponse<Texpand = unknown> = QuestionsRecord & BaseSystemFields<Texpand>
-export type RetrospectivesResponse<Texpand = unknown> = RetrospectivesRecord & BaseSystemFields<Texpand>
+export type ActionResponse<Texpand = unknown> = ActionRecord & BaseSystemFields<Texpand>
+export type AnswerResponse<Texpand = unknown> = AnswerRecord & BaseSystemFields<Texpand>
+export type QuestionResponse<Texpand = unknown> = QuestionRecord & BaseSystemFields<Texpand>
+export type RetrospectiveResponse<Texpand = unknown> = RetrospectiveRecord & BaseSystemFields<Texpand>
 export type UsersResponse = UsersRecord & AuthSystemFields
 
 // Types containing all Records and Responses, useful for creating typing helper functions
 
 export type CollectionRecords = {
-	actions: ActionsRecord
-	answers: AnswersRecord
-	questions: QuestionsRecord
-	retrospectives: RetrospectivesRecord
+	action: ActionRecord
+	answer: AnswerRecord
+	question: QuestionRecord
+	retrospective: RetrospectiveRecord
 	users: UsersRecord
 }
 
 export type CollectionResponses = {
-	actions: ActionsResponse
-	answers: AnswersResponse
-	questions: QuestionsResponse
-	retrospectives: RetrospectivesResponse
+	action: ActionResponse
+	answer: AnswerResponse
+	question: QuestionResponse
+	retrospective: RetrospectiveResponse
 	users: UsersResponse
 }

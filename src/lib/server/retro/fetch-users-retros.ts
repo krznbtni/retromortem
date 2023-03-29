@@ -3,9 +3,9 @@ import {error} from '@sveltejs/kit';
 import {ClientResponseError} from 'pocketbase';
 
 import {serializeNonPOJOs} from '$lib/serialize-non-pojos';
-import {Collections, type RetrospectivesResponse} from '$lib/types/pocketbase-types';
+import {Collections, type RetrospectiveResponse} from '$lib/types/pocketbase-types';
 
-export async function fetchUsersRetros(locals: App.Locals): Promise<RetrospectivesResponse[]> {
+export async function fetchUsersRetros(locals: App.Locals): Promise<RetrospectiveResponse[]> {
   if (!locals?.user) {
     console.error('fetchUsersRetros -> locals.user does not exist');
     throw error(400, 'Something went wrong updating your profile.');
@@ -13,8 +13,8 @@ export async function fetchUsersRetros(locals: App.Locals): Promise<Retrospectiv
 
   try {
     const retros = await locals.pb
-      .collection(Collections.Retrospectives)
-      .getFullList<RetrospectivesResponse>(undefined, {
+      .collection(Collections.Retrospective)
+      .getFullList<RetrospectiveResponse>(undefined, {
         filter: `organizer = "${locals?.user?.id}"`,
       });
 

@@ -1,7 +1,7 @@
 <script lang="ts">
-import type {RetrospectivesResponse} from '$lib/types/pocketbase-types';
+import type {RetrospectiveResponse} from '$lib/types/pocketbase-types';
 
-export let retro: RetrospectivesResponse;
+export let retro: RetrospectiveResponse;
 </script>
 
 <div class="bg-base-100 w-full flex items-center justify-between py-4">

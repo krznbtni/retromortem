@@ -33,7 +33,7 @@ export const actions: Actions = {
     }
 
     try {
-      await locals.pb.collection(Collections.Retrospectives).delete(body.id);
+      await locals.pb.collection(Collections.Retrospective).delete(body.id);
     } catch (err) {
       const e = err as ClientResponseError;
       console.log('Error: ', e);
