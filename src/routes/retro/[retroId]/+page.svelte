@@ -5,7 +5,7 @@ export let data: PageData;
 
 $: ({retro, questions} = data);
 
-$: participants = retro.expand.participants;
+$: participants = retro.expand.participants || [];
 
 $: created = new Date(retro.created).toLocaleDateString('sv-SE');
 $: updated = new Date(retro.updated).toLocaleString('sv-SE');
@@ -30,6 +30,10 @@ $: scheduled = retro.scheduled
     <h3 class="text-2xl font-bold mb-4">Participants</h3>
 
     <div class="flex flex-wrap gap-3 mb-4">
+      {#if !participants.length}
+        <p class="text-sm mb-2">lol u has no friends?</p>
+      {/if}
+
       {#each participants as participant}
         <div class="badge badge-lg badge-outline">{participant.name}</div>
       {/each}
@@ -38,7 +42,7 @@ $: scheduled = retro.scheduled
     <h3 class="text-2xl font-bold mb-4">Questions</h3>
 
     {#each questions as question}
-      <h4 class="text-xl font-bold mb-4">{question.title}</h4>
+      <h4 class="text-md font-bold mb-4">{question.title}</h4>
     {/each}
   </div>
 </div>
