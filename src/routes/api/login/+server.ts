@@ -1,7 +1,7 @@
 import {error, redirect} from '@sveltejs/kit';
 import type {RequestHandler} from './$types';
 import type {ClientResponseError} from 'pocketbase';
-import {PROD} from '$env/static/private';
+// import {PROD} from '$env/static/private';
 
 interface LoginBody {
   email?: string;
@@ -9,9 +9,9 @@ interface LoginBody {
 }
 
 export const POST = (async ({locals, request}) => {
-  if (PROD) {
-    throw error(400, 'YOU SHALL NOT PASS');
-  }
+  // if (PROD) {
+  //   throw error(400, 'YOU SHALL NOT PASS');
+  // }
 
   const body = (await request.json()) as LoginBody;
 
