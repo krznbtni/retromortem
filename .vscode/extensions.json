@@ -5,6 +5,9 @@
     "esbenp.prettier-vscode",
     "svelte.svelte-vscode",
     "bradlc.vscode-tailwindcss",
-    "heybourn.headwind"
+    "heybourn.headwind",
+    "streetsidesoftware.code-spell-checker",
+    "mikestead.dotenv",
+    "ms-playwright.playwright"
   ]
 }

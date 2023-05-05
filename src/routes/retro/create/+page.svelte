@@ -4,7 +4,7 @@ import {invalidateAll} from '$app/navigation';
 
 import DatePicker from '$lib/components/common/DatePicker.svelte';
 import Input from '$lib/components/common/Input.svelte';
-import InputGroup from '$lib/components/common/InputGroup.svelte';
+// import RetroQuestions from '$lib/components/retro/RetroQuestions.svelte';
 import Select from '$lib/components/common/Select.svelte';
 import TextArea from '$lib/components/common/TextArea.svelte';
 
@@ -16,15 +16,11 @@ let loading = false;
 let states = ['draft', 'published'];
 let questions: Array<string> = [];
 
-function addQuestion(): void {
-  questions = [...questions, ''];
-}
-
-function deleteQuestion(index: number): void {
-  questions = questions.filter((_, i) => i !== index);
-}
-
 const submitCreateRetro = (({data}) => {
+  if (loading) {
+    return;
+  }
+
   loading = true;
   data.append('questions', JSON.stringify(questions));
 
@@ -80,28 +76,7 @@ const submitCreateRetro = (({data}) => {
       disabled={loading}
     />
 
-    <div class="form-control w-full max-w-lg mb-2">
-      <span class="label font-medium pb-1 label-text">Questions</span>
-
-      <button
-        class="btn-outline btn-sm btn w-full max-w-lg"
-        type="button"
-        on:click={addQuestion}
-        disabled={loading}
-      >
-        Add Question
-      </button>
-    </div>
-
-    {#each questions as question, index (index)}
-      <InputGroup
-        id={question}
-        bind:value={question}
-        placeholder="Enter question text"
-        on:click={() => deleteQuestion(index)}
-        disabled={loading}
-      />
-    {/each}
+    <!-- <RetroQuestions bind:questions {loading} /> -->
 
     <div class="w-full max-w-lg pt-3">
       <button type="submit" class="btn btn-primary w-full max-w-lg" disabled={loading}

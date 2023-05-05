@@ -19,5 +19,6 @@
   "svelte.enable-ts-plugin": true,
   "svelte.plugin.svelte.defaultScriptLanguage": "ts",
   "typescript.preferences.autoImportFileExcludePatterns": ["internal"],
-  "typescript.surveys.enabled": false
+  "typescript.surveys.enabled": false,
+  "cSpell.words": ["cssnano", "daisyui", "formdata", "pocketbase", "retromortem", "tailwindcss"]
 }
