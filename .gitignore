@@ -10,7 +10,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 
-/pocket/pb_data
+/db/pb_data
 .eslintcache
 
 playwright-report
