@@ -7,7 +7,7 @@ export let data: PageData;
 
 let loading = false;
 
-$: ({retro, isOrganizer, isParticipant} = data);
+$: ({retro, isOrganizer, isAttendee} = data);
 
 $: attendees = retro.expand.attendees || [];
 $: questions = retro.expand.questions || [];
@@ -58,7 +58,7 @@ const submitJoinRetro = (() => {
     <h3 class="text-2xl font-bold mb-4">
       Participants
 
-      {#if !isOrganizer && !isParticipant}
+      {#if !isOrganizer && !isAttendee}
         <button
           formaction="?/joinRetro"
           class:btn-disabled={loading}

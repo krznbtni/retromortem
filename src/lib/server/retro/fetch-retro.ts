@@ -3,19 +3,12 @@ import {error} from '@sveltejs/kit';
 import {ClientResponseError} from 'pocketbase';
 
 import {serializeNonPOJOs} from '$lib/serialize-non-pojos';
-import {
-  Collections,
-  type CollectionResponses,
-  type RetrospectivesResponse,
-  type UsersResponse,
-} from '$lib/types/pocketbase-types';
-
-type X = RetrospectivesResponse<{organizers: UsersResponse[]; attendees: UsersResponse[]}>;
+import {Collections, type CollectionResponses} from '$lib/types/pocketbase-types';
 
 export async function fetchRetro<T = CollectionResponses['retrospectives']>(
   locals: App.Locals,
   id: string,
-  expand = 'organizers,attendees,questions.answers.votes.user',
+  expand = '',
 ): Promise<T> {
   try {
     const retro = await locals.pb.collection(Collections.Retrospectives).getOne<T>(id, {expand});

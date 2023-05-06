@@ -26,12 +26,15 @@ export const load = (async event => {
     throw redirect(303, '/login');
   }
 
-  const retro = await fetchRetro<Expanded>(locals, retroId, 'organizer,participants');
+  const retro = await fetchRetro<Expanded>(
+    locals,
+    retroId,
+    'organizer,attendees,questions.answers',
+  );
 
   return {
     isOrganizer: locals.user.id === retro.organizer,
-    isParticipant: retro.attendees?.includes(locals.user.id),
-    // questions: await fetchRetroQuestions(locals, retroId),
+    isAttendee: retro.attendees?.includes(locals.user.id),
     retro,
   };
 }) satisfies PageServerLoad;
