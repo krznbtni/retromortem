@@ -56,7 +56,7 @@ export type RetrospectivesRecord = {
 	details?: string
 	scheduled?: IsoDateString
 	state: RetrospectivesStateOptions
-	organizers: RecordIdString[]
+	organizer: RecordIdString
 	attendees?: RecordIdString[]
 	questions?: RecordIdString[]
 }

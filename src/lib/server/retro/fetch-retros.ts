@@ -3,16 +3,16 @@ import {error} from '@sveltejs/kit';
 import {ClientResponseError} from 'pocketbase';
 
 import {serializeNonPOJOs} from '$lib/serialize-non-pojos';
-import {Collections, type RetrospectiveResponse} from '$lib/types/pocketbase-types';
+import {Collections, type RetrospectivesResponse} from '$lib/types/pocketbase-types';
 
 export async function fetchRetros(
   locals: App.Locals,
   filter = '',
-): Promise<RetrospectiveResponse[]> {
+): Promise<RetrospectivesResponse[]> {
   try {
     const retros = await locals.pb
-      .collection(Collections.Retrospective)
-      .getFullList<RetrospectiveResponse>(undefined, {sort: '-created', filter});
+      .collection(Collections.Retrospectives)
+      .getFullList<RetrospectivesResponse>(undefined, {sort: '-created', filter});
 
     return serializeNonPOJOs(retros);
   } catch (err) {

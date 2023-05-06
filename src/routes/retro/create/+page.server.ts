@@ -1,25 +1,18 @@
 import {error, fail, redirect} from '@sveltejs/kit';
 import type {Actions, PageServerLoad} from './$types';
 import type {ClientResponseError} from 'pocketbase';
-import {Collections, type RetrospectiveRecord} from '$lib/types/pocketbase-types';
+import {Collections, type RetrospectivesRecord} from '$lib/types/pocketbase-types';
 
 export const load = (({locals}) => {
   if (!locals.pb.authStore.isValid) {
     throw redirect(303, '/login');
   }
-
-  // const retro = await locals.pb.collection('retrospectives').getOne('2ijjvdbd3sx4kjc');
-  // retro.participants = ['4l2m06194g3lnzi', 'pz4qjqitdz53xux'];
-  // console.log('load -> retro:', retro);
-
-  // const updatedRetro = await locals.pb.collection('retrospectives').update(retro.id, retro);
-  // console.log('load -> updatedRetro:', updatedRetro);
 }) satisfies PageServerLoad;
 
-interface Submission extends RetrospectiveRecord {
+interface Submission extends RetrospectivesRecord {
   date: string;
   time: string;
-  questions: string;
+  questionsIn: string;
 }
 
 export const actions: Actions = {
@@ -29,16 +22,33 @@ export const actions: Actions = {
     }
 
     const formDataRaw = await request.formData();
+    console.log('create: -> formDataRaw:', formDataRaw);
     formDataRaw.append('organizer', locals.user?.id);
-
     const formDataParsed: Partial<Submission> = Object.fromEntries(formDataRaw);
+
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     formDataParsed.scheduled = new Date(`${formDataParsed.date} ${formDataParsed.time}`)
       .toISOString()
       .replace('T', ' ');
 
-    if (!formDataParsed.name) {
-      return fail(400, {data: formDataParsed, errors: {name: 'You must enter a name'}});
+    if (!formDataParsed.title) {
+      return fail(400, {data: formDataParsed, errors: {title: 'You must enter a title'}});
+    }
+
+    const questions: Array<string> = [];
+
+    if (formDataParsed.questionsIn) {
+      const parsedBodyQuestions = JSON.parse(formDataParsed.questionsIn) as Array<string>;
+      console.log('create: -> parsedBodyQuestions:', parsedBodyQuestions);
+
+      for (const question of parsedBodyQuestions) {
+        const res = await locals.pb.collection(Collections.Questions).create({title: question});
+        console.log('create: -> res:', res);
+
+        questions.push(res.id);
+      }
+
+      formDataParsed.questions = questions;
     }
 
     // TODO: validation
@@ -50,26 +60,15 @@ export const actions: Actions = {
     // }
 
     try {
-      const retrospectiveResult = await locals.pb
-        .collection(Collections.Retrospective)
-        .create(formDataParsed);
-
-      if (formDataParsed.questions) {
-        const parsedBodyQuestions = JSON.parse(formDataParsed.questions) as Array<string>;
-
-        for (const question of parsedBodyQuestions) {
-          await locals.pb.collection(Collections.Question).create({
-            title: question,
-            creator: locals.user?.id,
-            retrospective: retrospectiveResult.id,
-          });
-        }
-      }
+      const r = await locals.pb.collection(Collections.Retrospectives).create(formDataParsed);
+      console.log('create: -> r:', r);
     } catch (err) {
       const e = err as ClientResponseError;
       console.log('Error: ', e);
       throw error(e.status, e.message);
     }
+
+    console.log('?????????+');
 
     throw redirect(303, '/retro');
   },
