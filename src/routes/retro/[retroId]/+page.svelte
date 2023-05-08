@@ -1,9 +1,26 @@
 <script lang="ts">
 import type {PageData} from './$types';
+import {onDestroy, onMount} from 'svelte';
+import {
+  Collections,
+  type QuestionsResponse,
+  type RetrospectivesResponse,
+  type UsersResponse,
+} from '$lib/types/pocketbase-types';
+import {pb} from '$lib/pocketbase';
+
+interface Expanded extends RetrospectivesResponse {
+  expand: {
+    organizer: UsersResponse;
+    attendees: Array<UsersResponse>;
+    questions: Array<QuestionsResponse>;
+  };
+}
 
 export let data: PageData;
 
 let loading = false;
+let unsubscribe: () => Promise<void>;
 
 $: ({retro, isOrganizer, isAttendee} = data);
 
@@ -15,6 +32,21 @@ $: updated = new Date(retro.updated).toLocaleString('sv-SE');
 $: scheduled = retro.scheduled
   ? new Date(retro.scheduled).toLocaleString('sv-SE')
   : 'No scheduled date';
+
+onMount(async () => {
+  unsubscribe = await pb.collection(Collections.Retrospectives).subscribe(retro.id, ({action}) => {
+    if (action === 'update') {
+      void pb
+        .collection(Collections.Retrospectives)
+        .getOne<Expanded>(retro.id, {expand: 'organizer,attendees,questions.answers'})
+        .then(res => (retro = res));
+    }
+  });
+});
+
+onDestroy(async () => {
+  await unsubscribe?.();
+});
 </script>
 
 <div class="w-full mt-4 flex flex-col items-center">
