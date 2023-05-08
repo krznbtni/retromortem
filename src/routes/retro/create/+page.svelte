@@ -4,7 +4,7 @@ import {invalidateAll} from '$app/navigation';
 
 import DatePicker from '$lib/components/common/DatePicker.svelte';
 import Input from '$lib/components/common/Input.svelte';
-// import RetroQuestions from '$lib/components/retro/RetroQuestions.svelte';
+import RetroQuestions from '$lib/components/retro/RetroQuestions.svelte';
 import Select from '$lib/components/common/Select.svelte';
 import TextArea from '$lib/components/common/TextArea.svelte';
 
@@ -22,7 +22,7 @@ const submitCreateRetro = (({data}) => {
   }
 
   loading = true;
-  data.append('questions', JSON.stringify(questions));
+  data.append('questionsIn', JSON.stringify(questions));
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   return async ({result}) => {
@@ -51,13 +51,8 @@ const submitCreateRetro = (({data}) => {
   >
     <h3 class="text-3xl font-bold">Create Retro</h3>
 
-    <Input id="name" label="Name" value={form?.data?.name} required disabled={loading} />
-    <TextArea
-      id="description"
-      label="Description"
-      value={form?.data?.description}
-      disabled={loading}
-    />
+    <Input id="title" label="Title" value={form?.data?.title} required disabled={loading} />
+    <TextArea id="details" label="Details" value={form?.data?.details} disabled={loading} />
     <Select
       id="state"
       label="State"
@@ -76,7 +71,7 @@ const submitCreateRetro = (({data}) => {
       disabled={loading}
     />
 
-    <!-- <RetroQuestions bind:questions {loading} /> -->
+    <RetroQuestions bind:questions {loading} />
 
     <div class="w-full max-w-lg pt-3">
       <button type="submit" class="btn btn-primary w-full max-w-lg" disabled={loading}

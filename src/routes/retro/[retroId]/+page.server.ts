@@ -3,16 +3,18 @@ import {fetchRetroQuestions} from '$lib/server/fetch-retro-questions';
 import type {Actions, PageServerLoad} from './$types';
 import {
   Collections,
-  type RetrospectiveResponse,
+  type QuestionsResponse,
+  type RetrospectivesResponse,
   type UsersResponse,
 } from '$lib/types/pocketbase-types';
 import {error, redirect} from '@sveltejs/kit';
 import type {ClientResponseError} from 'pocketbase';
 
-interface Expanded extends RetrospectiveResponse {
+interface Expanded extends RetrospectivesResponse {
   expand: {
     organizer: UsersResponse;
-    participants: Array<UsersResponse>;
+    attendees: Array<UsersResponse>;
+    questions: Array<QuestionsResponse>;
   };
 }
 
@@ -24,12 +26,15 @@ export const load = (async event => {
     throw redirect(303, '/login');
   }
 
-  const retro = await fetchRetro<Expanded>(locals, retroId, 'organizer,participants');
+  const retro = await fetchRetro<Expanded>(
+    locals,
+    retroId,
+    'organizer,attendees,questions.answers',
+  );
 
   return {
     isOrganizer: locals.user.id === retro.organizer,
-    isParticipant: retro.participants?.includes(locals.user.id),
-    questions: await fetchRetroQuestions(locals, retroId),
+    isAttendee: retro.attendees?.includes(locals.user.id),
     retro,
   };
 }) satisfies PageServerLoad;
@@ -43,15 +48,15 @@ export const actions: Actions = {
     try {
       const retro = await fetchRetro<Expanded>(locals, params.retroId);
 
-      if (locals.user.id === retro.organizer || retro.participants?.includes(locals.user.id)) {
+      if (locals.user.id === retro.organizer || retro.attendees?.includes(locals.user.id)) {
         return {
           success: true,
         };
       }
 
-      retro.participants?.push(locals.user.id);
+      retro.attendees?.push(locals.user.id);
 
-      await locals.pb.collection(Collections.Retrospective).update(params.retroId, retro);
+      await locals.pb.collection(Collections.Retrospectives).update(params.retroId, retro);
     } catch (err) {
       const e = err as ClientResponseError;
       console.error('actions -> joinRetro: -> e:', e);

@@ -3,16 +3,18 @@ import {error} from '@sveltejs/kit';
 import {ClientResponseError} from 'pocketbase';
 
 import {serializeNonPOJOs} from '$lib/serialize-non-pojos';
-import {Collections, type QuestionResponse} from '$lib/types/pocketbase-types';
+import {Collections, type CollectionResponses} from '$lib/types/pocketbase-types';
 
 export async function fetchRetroQuestions(
   locals: App.Locals,
   retroId: string,
-): Promise<QuestionResponse[]> {
+): Promise<Array<CollectionResponses['questions']>> {
   try {
     const retros = await locals.pb
-      .collection(Collections.Question)
-      .getFullList<QuestionResponse>(undefined, {filter: `retrospective = "${retroId}"`});
+      .collection(Collections.Questions)
+      .getFullList<CollectionResponses['questions']>(undefined, {
+        filter: `retrospective = "${retroId}"`,
+      });
 
     return serializeNonPOJOs(retros);
   } catch (err) {

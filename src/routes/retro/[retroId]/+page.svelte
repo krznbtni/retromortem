@@ -7,9 +7,10 @@ export let data: PageData;
 
 let loading = false;
 
-$: ({retro, questions, isOrganizer, isParticipant} = data);
+$: ({retro, isOrganizer, isAttendee} = data);
 
-$: participants = retro.expand.participants || [];
+$: attendees = retro.expand.attendees || [];
+$: questions = retro.expand.questions || [];
 
 $: created = new Date(retro.created).toLocaleDateString('sv-SE');
 $: updated = new Date(retro.updated).toLocaleString('sv-SE');
@@ -43,21 +44,21 @@ const submitJoinRetro = (() => {
 
 <div class="w-full mt-4 flex flex-col items-center">
   <form class="flex flex-col w-full max-w-screen-sm" method="POST" use:enhance={submitJoinRetro}>
-    <h2 class="text-3xl font-bold mb-4">{retro.name}</h2>
+    <h2 class="text-3xl font-bold mb-4">{retro.title}</h2>
 
     <p class="text-sm mb-2"><strong>Organizer:</strong> {retro.expand.organizer.username}</p>
     <p class="text-sm mb-2"><strong>Created:</strong> {created}</p>
     <p class="text-sm mb-2"><strong>Updated:</strong> {updated}</p>
     <p class="text-sm mb-2"><strong>Scheduled:</strong> {scheduled}</p>
 
-    {#if retro.description}
-      <p class="text-sm mb-4"><strong>Description:</strong> {retro.description}</p>
+    {#if retro.details}
+      <p class="text-sm mb-4"><strong>Details:</strong> {retro.details}</p>
     {/if}
 
     <h3 class="text-2xl font-bold mb-4">
       Participants
 
-      {#if !isOrganizer && !isParticipant}
+      {#if !isOrganizer && !isAttendee}
         <button
           formaction="?/joinRetro"
           class:btn-disabled={loading}
@@ -86,12 +87,12 @@ const submitJoinRetro = (() => {
     </h3>
 
     <div class="flex flex-wrap gap-3 mb-4">
-      {#if !participants.length}
+      {#if !attendees.length}
         <p class="text-sm mb-2">lol u has no friends?</p>
       {/if}
 
-      {#each participants as participant}
-        <div class="badge badge-lg badge-outline">{participant.name}</div>
+      {#each attendees as attendee}
+        <div class="badge badge-lg badge-outline">{attendee.name}</div>
       {/each}
     </div>
 
