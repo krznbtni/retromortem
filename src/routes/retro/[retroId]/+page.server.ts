@@ -73,8 +73,6 @@ export const actions: Actions = {
 
     try {
       const retro = await fetchRetro<Expanded>(locals, params.retroId);
-      console.log('leaveRetro: -> retro:', retro);
-      console.log('leaveRetro: -> locals.user.id:', locals.user.id);
 
       if (locals.user.id === retro.organizer || !retro.attendees?.includes(locals.user.id)) {
         return {

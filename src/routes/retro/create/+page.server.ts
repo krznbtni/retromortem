@@ -22,7 +22,6 @@ export const actions: Actions = {
     }
 
     const formDataRaw = await request.formData();
-    console.log('create: -> formDataRaw:', formDataRaw);
     formDataRaw.append('organizer', locals.user?.id);
     const formDataParsed: Partial<Submission> = Object.fromEntries(formDataRaw);
 
@@ -39,12 +38,9 @@ export const actions: Actions = {
 
     if (formDataParsed.questionsIn) {
       const parsedBodyQuestions = JSON.parse(formDataParsed.questionsIn) as Array<string>;
-      console.log('create: -> parsedBodyQuestions:', parsedBodyQuestions);
 
       for (const question of parsedBodyQuestions) {
         const res = await locals.pb.collection(Collections.Questions).create({title: question});
-        console.log('create: -> res:', res);
-
         questions.push(res.id);
       }
 
@@ -61,14 +57,11 @@ export const actions: Actions = {
 
     try {
       const r = await locals.pb.collection(Collections.Retrospectives).create(formDataParsed);
-      console.log('create: -> r:', r);
     } catch (err) {
       const e = err as ClientResponseError;
       console.log('Error: ', e);
       throw error(e.status, e.message);
     }
-
-    console.log('?????????+');
 
     throw redirect(303, '/retro');
   },
