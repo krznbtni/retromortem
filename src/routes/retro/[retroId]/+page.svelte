@@ -1,6 +1,4 @@
 <script lang="ts">
-import {enhance, type SubmitFunction} from '$app/forms';
-import {invalidateAll} from '$app/navigation';
 import type {PageData} from './$types';
 
 export let data: PageData;
@@ -17,33 +15,10 @@ $: updated = new Date(retro.updated).toLocaleString('sv-SE');
 $: scheduled = retro.scheduled
   ? new Date(retro.scheduled).toLocaleString('sv-SE')
   : 'No scheduled date';
-
-const submitJoinRetro = (() => {
-  if (loading) {
-    return;
-  }
-
-  loading = true;
-
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  return async ({result, update}) => {
-    switch (result.type) {
-      case 'success':
-        await invalidateAll();
-        break;
-      case 'error':
-        break;
-      default:
-        await update();
-    }
-
-    loading = false;
-  };
-}) satisfies SubmitFunction;
 </script>
 
 <div class="w-full mt-4 flex flex-col items-center">
-  <form class="flex flex-col w-full max-w-screen-sm" method="POST" use:enhance={submitJoinRetro}>
+  <form class="flex flex-col w-full max-w-screen-sm" method="POST">
     <h2 class="text-3xl font-bold mb-4">{retro.title}</h2>
 
     <p class="text-sm mb-2"><strong>Organizer:</strong> {retro.expand.organizer.username}</p>
@@ -82,6 +57,33 @@ const submitJoinRetro = (() => {
             </svg>
           {/if}
           ? JOIN ?
+        </button>
+      {/if}
+
+      {#if !isOrganizer && isAttendee}
+        <button
+          formaction="?/leaveRetro"
+          class:btn-disabled={loading}
+          class:loading
+          class="btn btn-warning btn-xs gap-1 ml-4"
+        >
+          {#if !loading}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          {/if}
+          ? LEAVE ?
         </button>
       {/if}
     </h3>

@@ -1,5 +1,4 @@
 import {fetchRetro} from '$lib/server/retro/fetch-retro';
-import {fetchRetroQuestions} from '$lib/server/fetch-retro-questions';
 import type {Actions, PageServerLoad} from './$types';
 import {
   Collections,
@@ -60,6 +59,35 @@ export const actions: Actions = {
     } catch (err) {
       const e = err as ClientResponseError;
       console.error('actions -> joinRetro: -> e:', e);
+      throw error(e.status, e.message);
+    }
+
+    return {
+      success: true,
+    };
+  },
+  leaveRetro: async ({locals, params}) => {
+    if (!locals.user) {
+      throw redirect(303, '/login');
+    }
+
+    try {
+      const retro = await fetchRetro<Expanded>(locals, params.retroId);
+      console.log('leaveRetro: -> retro:', retro);
+      console.log('leaveRetro: -> locals.user.id:', locals.user.id);
+
+      if (locals.user.id === retro.organizer || !retro.attendees?.includes(locals.user.id)) {
+        return {
+          success: true,
+        };
+      }
+
+      retro.attendees = retro.attendees?.filter(attendee => attendee !== locals.user?.id);
+
+      await locals.pb.collection(Collections.Retrospectives).update(params.retroId, retro);
+    } catch (err) {
+      const e = err as ClientResponseError;
+      console.error('actions -> leaveRetro: -> e:', e);
       throw error(e.status, e.message);
     }
 
