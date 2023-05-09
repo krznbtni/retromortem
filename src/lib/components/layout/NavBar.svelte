@@ -3,6 +3,7 @@ import {page} from '$app/stores';
 import {drawerStore} from '@skeletonlabs/skeleton';
 
 $: isLoggedIn = $page.data.user;
+$: classesActive = (href: string) => (href === $page.url.pathname ? '!bg-primary-500' : '');
 
 function drawerClose(): void {
   drawerStore.close();
@@ -11,15 +12,17 @@ function drawerClose(): void {
 
 <nav class="list-nav p-4">
   <ul>
-    <li><a href="/" on:click={drawerClose}>Homepage</a></li>
+    <li><a href="/" class={classesActive('/')} on:click={drawerClose}>Homepage</a></li>
 
     {#if isLoggedIn}
       <li>
-        <a href="/retro" on:click={drawerClose}>Retro list</a>
+        <a href="/retro" class={classesActive('/retro')} on:click={drawerClose}>Retro list</a>
       </li>
 
       <li>
-        <a href="/retro/create" on:click={drawerClose}>Create Retro</a>
+        <a href="/retro/create" class={classesActive('/retro/create')} on:click={drawerClose}
+          >Create Retro</a
+        >
       </li>
 
       <hr />
@@ -31,7 +34,7 @@ function drawerClose(): void {
     {:else}
       <hr />
       <li>
-        <a href="/login" on:click={drawerClose}>Log in</a>
+        <a href="/login" class={classesActive('/login')} on:click={drawerClose}>Log in</a>
       </li>
     {/if}
   </ul>
