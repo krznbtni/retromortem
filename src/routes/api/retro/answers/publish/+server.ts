@@ -6,13 +6,13 @@ import {Collections, type QuestionsResponse} from '$lib/types/pocketbase-types';
 interface PublishBody {
   questionId?: string;
   retroId?: string;
-  details?: string;
+  text?: string;
 }
 
 export const POST = (async ({locals, request}) => {
   const body = (await request.json()) as PublishBody;
 
-  if (!body.questionId || !body.retroId || !body.details) {
+  if (!body.questionId || !body.retroId || !body.text) {
     throw error(400, 'Invalid request body');
   }
 
@@ -23,7 +23,7 @@ export const POST = (async ({locals, request}) => {
   try {
     const createAnswerResponse = await locals.pb
       .collection(Collections.Answers)
-      .create({creator: locals.user.id, details: body.details});
+      .create({creator: locals.user.id, text: body.text});
     const question = await locals.pb
       .collection(Collections.Questions)
       .getOne<QuestionsResponse>(body.questionId);
