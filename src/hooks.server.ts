@@ -16,7 +16,7 @@ export const handle = (async ({event, resolve}) => {
   event.locals.pb.authStore.loadFromCookie(cookie);
 
   try {
-    /// Get an up-to-date auth store state by verifying and refreshing the loaded auth model (if any)
+    // Get an up-to-date auth store state by verifying and refreshing the loaded auth model (if any)
     if (event.locals.pb.authStore.isValid) {
       await event.locals.pb.collection('users').authRefresh();
 
@@ -25,8 +25,8 @@ export const handle = (async ({event, resolve}) => {
       event.locals.user = serializeNonPOJOs<User>(event.locals.pb.authStore.model as User);
     }
   } catch (_) {
-    /// Clear the auth store on failed refresh.
-    /// Same thing as logging out the user.
+    // Clear the auth store on failed refresh.
+    // Same thing as logging out the user.
     event.locals.pb.authStore.clear();
     event.locals.user = undefined;
   }

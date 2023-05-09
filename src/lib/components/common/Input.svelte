@@ -7,6 +7,12 @@ export let type = 'text';
 export let disabled = false;
 export let required = false;
 export let errors: string[] | undefined = [];
+
+function handleInput(event: Event): void {
+  if (event instanceof InputEvent && event.target instanceof HTMLInputElement) {
+    value = event.target.value;
+  }
+}
 </script>
 
 <div class="form-control w-full max-w-lg mb-2">
@@ -25,6 +31,7 @@ export let errors: string[] | undefined = [];
       ? 'file-input file-input-bordered w-full max-w-lg'
       : 'input input-bordered w-full-max-w-lg'}
     name={id}
+    on:input={handleInput}
   />
 
   {#if errors}

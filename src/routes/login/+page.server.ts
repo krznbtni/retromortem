@@ -1,13 +1,14 @@
 import {OAUTH_REDIRECT_URL} from '$lib/constants';
 import type {OAuthLink} from '$lib/types/oauth';
 import {Collections} from '$lib/types/pocketbase-types';
-import {redirect} from '@sveltejs/kit';
-import type {PageServerLoad, RequestEvent} from './$types';
+import {error, redirect} from '@sveltejs/kit';
+import type {Actions, PageServerLoad, RequestEvent} from './$types';
+import type {ClientResponseError} from 'pocketbase';
 
 export const load = (event => {
   const {locals} = event;
 
-  // Redirect to startpage if already authenticated.
+  // Redirect to start page if already authenticated.
   if (locals.pb.authStore.isValid) {
     throw redirect(303, '/');
   }
@@ -35,3 +36,28 @@ async function buildOauthLinks({locals, url}: RequestEvent): Promise<Array<OAuth
 
   return oauthLinks;
 }
+
+interface Login {
+  email?: string;
+  password?: string;
+}
+
+export const actions: Actions = {
+  login: async ({locals, request}) => {
+    const formData: Login = Object.fromEntries(await request.formData());
+
+    if (!formData.email || !formData.password) {
+      throw error(404);
+    }
+
+    try {
+      await locals.pb.collection('users').authWithPassword(formData.email, formData.password);
+    } catch (err) {
+      const e = err as ClientResponseError;
+      console.log('Error:', e);
+      throw error(e.status, e.message);
+    }
+
+    throw redirect(303, '/');
+  },
+};

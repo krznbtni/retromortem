@@ -1,20 +1,40 @@
 import {fetchRetro} from '$lib/server/retro/fetch-retro';
-import {fetchRetroQuestions} from '$lib/server/fetch-retro-questions';
 import type {Actions, PageServerLoad} from './$types';
 import {
   Collections,
+  type AnswersResponse,
   type QuestionsResponse,
   type RetrospectivesResponse,
   type UsersResponse,
+  type VotesResponse,
 } from '$lib/types/pocketbase-types';
 import {error, redirect} from '@sveltejs/kit';
 import type {ClientResponseError} from 'pocketbase';
 
-interface Expanded extends RetrospectivesResponse {
+interface ExpandedVotes extends VotesResponse {
+  expand: {
+    user: UsersResponse;
+  };
+}
+
+interface ExpandedAnswers extends AnswersResponse {
+  expand: {
+    creator: UsersResponse;
+    votes: Array<ExpandedVotes>;
+  };
+}
+
+interface ExpandedQuestion extends QuestionsResponse {
+  expand: {
+    answers: Array<ExpandedAnswers>;
+  };
+}
+
+interface ExpandedRetrospective extends RetrospectivesResponse {
   expand: {
     organizer: UsersResponse;
     attendees: Array<UsersResponse>;
-    questions: Array<QuestionsResponse>;
+    questions: Array<ExpandedQuestion>;
   };
 }
 
@@ -26,15 +46,16 @@ export const load = (async event => {
     throw redirect(303, '/login');
   }
 
-  const retro = await fetchRetro<Expanded>(
+  const retro = await fetchRetro<ExpandedRetrospective>(
     locals,
     retroId,
-    'organizer,attendees,questions.answers',
+    'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user',
   );
 
   return {
     isOrganizer: locals.user.id === retro.organizer,
     isAttendee: retro.attendees?.includes(locals.user.id),
+    userId: locals.user.id,
     retro,
   };
 }) satisfies PageServerLoad;
@@ -46,7 +67,7 @@ export const actions: Actions = {
     }
 
     try {
-      const retro = await fetchRetro<Expanded>(locals, params.retroId);
+      const retro = await fetchRetro<ExpandedRetrospective>(locals, params.retroId);
 
       if (locals.user.id === retro.organizer || retro.attendees?.includes(locals.user.id)) {
         return {
@@ -60,6 +81,33 @@ export const actions: Actions = {
     } catch (err) {
       const e = err as ClientResponseError;
       console.error('actions -> joinRetro: -> e:', e);
+      throw error(e.status, e.message);
+    }
+
+    return {
+      success: true,
+    };
+  },
+  leaveRetro: async ({locals, params}) => {
+    if (!locals.user) {
+      throw redirect(303, '/login');
+    }
+
+    try {
+      const retro = await fetchRetro<ExpandedRetrospective>(locals, params.retroId);
+
+      if (locals.user.id === retro.organizer || !retro.attendees?.includes(locals.user.id)) {
+        return {
+          success: true,
+        };
+      }
+
+      retro.attendees = retro.attendees?.filter(attendee => attendee !== locals.user?.id);
+
+      await locals.pb.collection(Collections.Retrospectives).update(params.retroId, retro);
+    } catch (err) {
+      const e = err as ClientResponseError;
+      console.error('actions -> leaveRetro: -> e:', e);
       throw error(e.status, e.message);
     }
 

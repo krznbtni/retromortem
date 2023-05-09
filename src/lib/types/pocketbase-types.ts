@@ -36,7 +36,7 @@ export type AuthSystemFields<T = never> = {
 
 export type AnswersRecord = {
 	creator: RecordIdString
-	details: string
+	text: string
 	votes?: RecordIdString[]
 }
 
@@ -52,7 +52,7 @@ export enum RetrospectivesStateOptions {
 	"finished" = "finished",
 }
 export type RetrospectivesRecord = {
-	title: string
+	title: string 
 	details?: string
 	scheduled?: IsoDateString
 	state: RetrospectivesStateOptions

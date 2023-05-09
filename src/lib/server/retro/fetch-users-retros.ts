@@ -15,6 +15,7 @@ export async function fetchUsersRetros(locals: App.Locals): Promise<Retrospectiv
     const retros = await locals.pb
       .collection(Collections.Retrospectives)
       .getFullList<RetrospectivesResponse>(undefined, {
+        sort: '-created',
         filter: `organizer = "${locals?.user?.id}"`,
       });
 
