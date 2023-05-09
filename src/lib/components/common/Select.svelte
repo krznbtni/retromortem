@@ -11,12 +11,12 @@ $: {
 }
 </script>
 
-<div class="form-control w-full max-w-lg mb-2">
-  <label class="label" for={id}>
-    <span class="label-text">{label}</span>
+<div class="w-full max-w-lg mb-2">
+  <label for={id} class="label">
+    <span>{label}</span>
   </label>
 
-  <select class="select select-bordered" {required} {disabled} {value} {id} name={id}>
+  <select class="select variant-form-material" {required} {disabled} {value} {id} name={id}>
     {#each options as option (option)}
       <option value={option}>{option}</option>
     {/each}

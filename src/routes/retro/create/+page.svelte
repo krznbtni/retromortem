@@ -2,7 +2,6 @@
 import {applyAction, enhance, type SubmitFunction} from '$app/forms';
 import {invalidateAll} from '$app/navigation';
 
-import DatePicker from '$lib/components/common/DatePicker.svelte';
 import Input from '$lib/components/common/Input.svelte';
 import RetroQuestions from '$lib/components/retro/RetroQuestions.svelte';
 import Select from '$lib/components/common/Select.svelte';
@@ -61,20 +60,19 @@ const submitCreateRetro = (({data}) => {
       required
       disabled={loading}
     />
-    <DatePicker id="date" label="Date" value={form?.data?.date} required disabled={loading} />
     <Input
-      id="time"
-      label="Time"
-      value={form?.data?.time}
+      id="dateTime"
+      label="Date and time"
+      value={form?.data?.dateTime}
       required
-      type="time"
       disabled={loading}
+      type="datetime-local"
     />
 
     <RetroQuestions bind:questions {loading} />
 
-    <div class="w-full max-w-lg pt-3">
-      <button type="submit" class="btn btn-primary w-full max-w-lg" disabled={loading}
+    <div class="w-full max-w-lg">
+      <button type="submit" class="btn variant-filled-primary w-full max-w-lg" disabled={loading}
         >Create Retro</button
       >
     </div>

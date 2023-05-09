@@ -13,11 +13,11 @@ function deleteQuestion(index: number): void {
 }
 </script>
 
-<div class="form-control w-full max-w-lg mb-2">
-  <span class="label font-medium pb-1 label-text">Questions</span>
+<div class="w-full max-w-lg mb-2">
+  <span class="label">Questions</span>
 
   <button
-    class="btn-outline btn-sm btn w-full max-w-lg"
+    class="btn-sm btn w-full max-w-lg variant-filled-secondary"
     type="button"
     on:click={addQuestion}
     disabled={loading}

@@ -10,9 +10,8 @@ export const load = (({locals}) => {
 }) satisfies PageServerLoad;
 
 interface Submission extends RetrospectivesRecord {
-  date: string;
-  time: string;
   questionsIn: string;
+  dateTime: string;
 }
 
 export const actions: Actions = {
@@ -25,14 +24,16 @@ export const actions: Actions = {
     formDataRaw.append('organizer', locals.user?.id);
     const formDataParsed: Partial<Submission> = Object.fromEntries(formDataRaw);
 
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    formDataParsed.scheduled = new Date(`${formDataParsed.date} ${formDataParsed.time}`)
-      .toISOString()
-      .replace('T', ' ');
-
     if (!formDataParsed.title) {
       return fail(400, {data: formDataParsed, errors: {title: 'You must enter a title'}});
+    } else if (!formDataParsed.dateTime) {
+      return fail(400, {
+        data: formDataParsed,
+        errors: {dateTime: 'You must enter a date and time'},
+      });
     }
+
+    formDataParsed.scheduled = new Date(formDataParsed.dateTime).toISOString().replace('T', ' ');
 
     const questions: Array<string> = [];
 
