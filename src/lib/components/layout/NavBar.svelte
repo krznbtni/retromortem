@@ -11,7 +11,7 @@ function drawerClose(): void {
 
 <nav class="list-nav p-4">
   <ul>
-    <li><a href="/">Homepage</a></li>
+    <li><a href="/" on:click={drawerClose}>Homepage</a></li>
 
     {#if isLoggedIn}
       <li>
@@ -25,7 +25,7 @@ function drawerClose(): void {
       <hr />
       <li>
         <form action="/api/logout" method="POST">
-          <button class="w-full" type="submit">Log out</button>
+          <button class="w-full" type="submit" on:click={drawerClose}>Log out</button>
         </form>
       </li>
     {:else}

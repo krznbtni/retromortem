@@ -41,15 +41,16 @@ const submitCreateRetro = (({data}) => {
 }) satisfies SubmitFunction;
 </script>
 
-<div class="flex justify-center w-full h-full">
+<div class="container p-10 space-y-4">
+  <h1 class="text-center">Create Retro</h1>
+  <hr />
+
   <form
     action="?/create"
     method="POST"
-    class="flex flex-col space-y-2 w-full items-center"
+    class="flex flex-col items-center"
     use:enhance={submitCreateRetro}
   >
-    <h3 class="text-3xl font-bold">Create Retro</h3>
-
     <Input id="title" label="Title" value={form?.data?.title} required disabled={loading} />
     <TextArea id="details" label="Details" value={form?.data?.details} disabled={loading} />
     <Select
