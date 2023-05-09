@@ -14,12 +14,12 @@ function handleInput(event: Event): void {
 }
 </script>
 
-<div class="w-full max-w-lg">
+<div class="w-full max-w-lg mb-2">
   <label for={id} class="label">
     <span>{label}</span>
   </label>
 
-  <div class="input-group input-group-divider grid-cols-[1fr_auto]">
+  <div class="input-group input-group-divider grid-cols-[1fr_auto] variant-form-material">
     <input
       {disabled}
       {id}

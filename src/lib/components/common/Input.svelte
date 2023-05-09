@@ -14,7 +14,7 @@ function handleInput(event: Event): void {
 }
 </script>
 
-<div class="w-full max-w-lg">
+<div class="w-full max-w-lg mb-2">
   <label for={id} class="label">
     <span>{label}</span>
 

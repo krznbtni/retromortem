@@ -17,7 +17,7 @@ function deleteQuestion(index: number): void {
   <span class="label">Questions</span>
 
   <button
-    class="btn-sm btn w-full max-w-lg variant-filled-secondary"
+    class="btn-sm btn w-full max-w-lg variant-filled-secondary mt-1"
     type="button"
     on:click={addQuestion}
     disabled={loading}
