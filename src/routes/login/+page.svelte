@@ -52,49 +52,61 @@ const submitLogin = (() => {
 }) satisfies SubmitFunction;
 </script>
 
-<div class="card max-w-sm bg-base-100 shadow-xl mx-auto my-16">
-  <div class="card-body items-center text-center">
-    <h2 class="card-title mb-4">Hey cutie! Sign in below</h2>
+<div class="container p-10 space-y-4">
+  <div class="card max-w-sm mx-auto my-16">
+    <header class="card-header text-center">
+      <h3>Hey cutie! Sign in below</h3>
+    </header>
 
-    <!-- Temporary because: layzee -->
-    {#if dev}
-      <form
-        action="?/login"
-        method="POST"
-        class="flex flex-col space-y-2 w-full items-center"
-        use:enhance={submitLogin}
-      >
-        <Input
-          id="email"
-          label="Email"
-          type="email"
-          value={form?.data?.email ?? ''}
-          required
-          disabled={loading}
-        />
-        <Input
-          id="password"
-          label="Password"
-          type="password"
-          value={form?.data?.password}
-          required
-          disabled={loading}
-        />
-
-        <div class="w-full max-w-lg pt-3">
-          <button class="btn btn-primary w-full max-w-lg" type="submit" disabled={loading}
-            >Log in</button
+    <section class="p-4 space-y-4 items-center text-center">
+      {#if dev}
+        <div class="items-center text-center">
+          <form
+            action="?/login"
+            method="POST"
+            class="flex flex-col space-y-2 w-full items-center"
+            use:enhance={submitLogin}
           >
-        </div>
-      </form>
-    {/if}
+            <Input
+              id="email"
+              label="Email"
+              type="email"
+              value={form?.data?.email ?? ''}
+              required
+              disabled={loading}
+            />
+            <Input
+              id="password"
+              label="Password"
+              type="password"
+              value={form?.data?.password}
+              required
+              disabled={loading}
+            />
 
-    <div class="flex flex-col card-actions w-full">
-      {#each oauthLinks as oauthLink (oauthLink.name)}
-        <button class="btn w-full" class:loading on:click={() => gotoAuthProvider(oauthLink)}>
-          Sign in with {oauthLink.name}
-        </button>
-      {/each}
-    </div>
+            <div class="w-full max-w-lg pt-3">
+              <button class="btn w-full variant-filled" type="submit" disabled={loading}
+                >Log in</button
+              >
+            </div>
+          </form>
+        </div>
+
+        <hr />
+      {/if}
+
+      <div class="flex flex-col w-full">
+        {#each oauthLinks as oauthLink (oauthLink.name)}
+          <button
+            type="button"
+            class="btn w-full variant-filled"
+            class:loading
+            on:click={() => gotoAuthProvider(oauthLink)}
+          >
+            Sign in with {oauthLink.name}
+          </button>
+        {/each}
+      </div>
+    </section>
   </div>
 </div>
