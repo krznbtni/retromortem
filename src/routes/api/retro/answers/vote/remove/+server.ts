@@ -79,12 +79,8 @@ export const POST = (async ({locals, request}) => {
     const foundVote = findVote(locals.user.id, answer.expand.votes);
 
     if (foundVote) {
-      const deletedVote = await locals.pb.collection(Collections.Votes).delete(foundVote.id);
-      console.log('POST -> deletedVote:', deletedVote);
+      await locals.pb.collection(Collections.Votes).delete(foundVote.id);
     }
-
-    // answer.votes.push(createdVote.id);
-    // await locals.pb.collection(Collections.Answers).update(body.answerId, answer);
   } catch (err) {
     const e = err as ClientResponseError;
     console.error('POST -> e:', e);

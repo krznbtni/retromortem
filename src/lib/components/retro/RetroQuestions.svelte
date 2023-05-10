@@ -1,10 +1,16 @@
 <script lang="ts">
 import Icon from '@iconify/svelte';
 
-import InputGroup from '$lib/components/common/InputGroup.svelte';
+import {createEventDispatcher} from 'svelte';
 
-export let questions: Array<string> = [];
+import InputGroup from '$lib/components/common/InputGroup.svelte';
+import type {QuestionsResponse} from '$lib/types/pocketbase-types';
+
 export let loading = false;
+export let currentQuestions: Array<QuestionsResponse> = [];
+export let questions: Array<string> = [];
+
+const dispatch = createEventDispatcher<{deletedCurrent: number}>();
 
 function addQuestion(): void {
   questions = [...questions, ''];
@@ -12,6 +18,10 @@ function addQuestion(): void {
 
 function deleteQuestion(index: number): void {
   questions = questions.filter((_, i) => i !== index);
+}
+
+function deleteCurrentQuestion(index: number): void {
+  dispatch('deletedCurrent', index);
 }
 </script>
 
@@ -28,6 +38,16 @@ function deleteQuestion(index: number): void {
     <Icon icon="mdi:plus-circle" style="margin-left: 0.5rem;" />
   </button>
 </div>
+
+{#each currentQuestions as question, index (question.id)}
+  <InputGroup
+    id={question.id}
+    bind:value={question.title}
+    placeholder="Enter question text"
+    on:click={() => deleteCurrentQuestion(index)}
+    disabled={loading}
+  />
+{/each}
 
 {#each questions as question, index (index)}
   <InputGroup
