@@ -1,4 +1,6 @@
 <script lang="ts">
+import Icon from '@iconify/svelte';
+
 import InputGroup from '$lib/components/common/InputGroup.svelte';
 
 export let questions: Array<string> = [];
@@ -23,6 +25,7 @@ function deleteQuestion(index: number): void {
     disabled={loading}
   >
     Add Question
+    <Icon icon="mdi:plus-circle" style="margin-left: 0.5rem;" />
   </button>
 </div>
 

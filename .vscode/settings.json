@@ -26,6 +26,7 @@
     "pocketbase",
     "retromortem",
     "skeletonlabs",
-    "tailwindcss"
+    "tailwindcss",
+    "unplugin"
   ]
 }
