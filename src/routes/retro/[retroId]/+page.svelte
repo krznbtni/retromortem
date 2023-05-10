@@ -1,4 +1,6 @@
 <script lang="ts">
+import Icon from '@iconify/svelte';
+
 import type {PageData} from './$types';
 import {onDestroy, onMount} from 'svelte';
 import {
@@ -154,7 +156,15 @@ async function removeVote(answer: ExpandedAnswers): Promise<void> {
 </script>
 
 <div class="container p-10 space-y-4">
-  <h1>{retro.title}</h1>
+  <div class="flex flex-row justify-between items-center">
+    <h1>{retro.title}</h1>
+
+    {#if isOrganizer}
+      <a href="/retro/{retro.id}/edit">
+        <Icon icon="mdi:pencil" style="font-size: 1.5rem;" />
+      </a>
+    {/if}
+  </div>
   <hr />
 
   <div class="flex flex-col md:flex-row md:justify-between">
