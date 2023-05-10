@@ -50,13 +50,16 @@ $: ({retro, isOrganizer, isAttendee, userId} = data);
 
 $: attendees = retro.expand.attendees || [];
 $: questions = retro.expand.questions || [];
-$: allAnswerIds = questions.map(question => question.answers).flat();
 
-$: created = new Date(retro.created).toLocaleDateString('sv-SE');
+$: created = new Date(retro.created).toLocaleString('sv-SE');
 $: updated = new Date(retro.updated).toLocaleString('sv-SE');
 $: scheduled = retro.scheduled
   ? new Date(retro.scheduled).toLocaleString('sv-SE')
   : 'No scheduled date';
+
+$: allAnswerIds = questions.map(question => question.answers).flat();
+$: showJoinButton = !isOrganizer && !isAttendee;
+$: showLeaveButton = !isOrganizer && isAttendee;
 
 async function refetchRetro(): Promise<ExpandedRetrospective> {
   return pb.collection(Collections.Retrospectives).getOne<ExpandedRetrospective>(retro.id, {
@@ -150,23 +153,24 @@ async function removeVote(answer: ExpandedAnswers): Promise<void> {
 }
 </script>
 
-<div class="w-full mt-4 flex flex-col items-center">
+<div class="container p-10 space-y-4">
+  <h1>{retro.title}</h1>
+  <hr />
+
+  <div class="flex flex-col md:flex-row md:justify-between">
+    <p><strong>Created:</strong> {created}</p>
+    <p><strong>Updated:</strong> {updated}</p>
+    <p><strong>Scheduled:</strong> {scheduled}</p>
+  </div>
+
+  <p><strong>Organizer:</strong> {retro.expand.organizer.username}</p>
+  <p><strong>Details:</strong> {retro.details}</p>
+
   <form class="flex flex-col w-full max-w-screen-sm" method="POST">
-    <h2 class="text-3xl font-bold mb-4">{retro.title}</h2>
-
-    <p class="text-sm mb-2"><strong>Organizer:</strong> {retro.expand.organizer.username}</p>
-    <p class="text-sm mb-2"><strong>Created:</strong> {created}</p>
-    <p class="text-sm mb-2"><strong>Updated:</strong> {updated}</p>
-    <p class="text-sm mb-2"><strong>Scheduled:</strong> {scheduled}</p>
-
-    {#if retro.details}
-      <p class="text-sm mb-4"><strong>Details:</strong> {retro.details}</p>
-    {/if}
-
     <h3 class="text-2xl font-bold mb-4">
       Participants
 
-      {#if !isOrganizer && !isAttendee}
+      {#if showJoinButton}
         <button
           formaction="?/joinRetro"
           class:btn-disabled={loading}
@@ -209,7 +213,7 @@ async function removeVote(answer: ExpandedAnswers): Promise<void> {
         </button>
       {/if}
 
-      {#if !isOrganizer && isAttendee}
+      {#if showLeaveButton}
         <button
           formaction="?/leaveRetro"
           class:btn-disabled={loading}
