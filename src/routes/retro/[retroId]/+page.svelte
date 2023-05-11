@@ -208,7 +208,7 @@ const submitLeaveRetro = (() => {
   <p><strong>Details:</strong> {retro.details}</p>
 
   <div class="flex w-full items-center">
-    <h2>Participants</h2>
+    <h2>Attendees</h2>
 
     {#if showJoinButton}
       <form method="POST" class="ml-4" use:enhance={submitJoinRetro}>
@@ -264,7 +264,7 @@ const submitLeaveRetro = (() => {
               >
                 <p>
                   <strong>Creator:</strong>
-                  {answer.expand.creator.username || answer.expand.creator.email}
+                  {answer.expand.creator.username}
                 </p>
 
                 <p><strong>Text:</strong> {answer.text}</p>
@@ -274,13 +274,13 @@ const submitLeaveRetro = (() => {
                   {#if answer.expand.votes}
                     {#each answer.expand.votes as vote, index (vote.id)}
                       <span class="badge variant-filled" class:ml-3={index !== 0}>
-                        {vote.expand.user.name || vote.expand.user.username}
+                        {vote.expand.user.username}
                       </span>
                     {/each}
                   {/if}
                 </p>
 
-                {#if hasVotedForAnswer(answer.expand.votes)}
+                {#if (isOrganizer || isAttendee) && hasVotedForAnswer(answer.expand.votes)}
                   <button
                     class="btn btn-sm variant-filled-warning mt-2"
                     disabled={loading}
@@ -290,7 +290,7 @@ const submitLeaveRetro = (() => {
                     <span>Remove vote</span>
                     <span class="text-base"><Icon icon="mdi:thumbs-up-down" /></span>
                   </button>
-                {:else}
+                {:else if (isOrganizer || isAttendee) && !hasVotedForAnswer(answer.expand.votes)}
                   <button
                     class="btn btn-sm variant-filled-primary mt-2"
                     disabled={loading}
@@ -331,14 +331,16 @@ const submitLeaveRetro = (() => {
             {/if}
           {/each}
 
-          <button
-            class="btn btn-sm variant-filled-secondary ml-3"
-            disabled={loading}
-            on:click={() => draftAnswer(question.id)}
-            type="button"
-          >
-            Draft answer
-          </button>
+          {#if isOrganizer || isAttendee}
+            <button
+              class="btn btn-sm variant-filled-tertiary ml-3"
+              disabled={loading}
+              on:click={() => draftAnswer(question.id)}
+              type="button"
+            >
+              Draft answer
+            </button>
+          {/if}
         </section>
       </article>
     {/each}
