@@ -7,21 +7,32 @@ import RetroQuestions from '$lib/components/retro/RetroQuestions.svelte';
 import Select from '$lib/components/common/Select.svelte';
 import TextArea from '$lib/components/common/TextArea.svelte';
 
-import type {ActionData} from './$types';
+import type {ActionData, PageData} from './$types';
 
+export let data: PageData;
 export let form: ActionData;
+
+$: ({retro} = data);
 
 let loading = false;
 let states = ['draft', 'published'];
-let questions: Array<string> = [];
 
-const submitCreateRetro = (({data}) => {
+let newQuestions: Array<string> = [];
+
+$: currentQuestions = retro.expand.questions || [];
+
+function handleDeletedCurrentQuestion(event: CustomEvent<number>): void {
+  currentQuestions = currentQuestions.filter((_, i) => i !== event.detail);
+}
+
+const submitUpdateRetro = (({data}) => {
   if (loading) {
     return;
   }
 
   loading = true;
-  data.append('questionsIn', JSON.stringify(questions));
+  data.append('newQuestions', JSON.stringify(newQuestions));
+  data.append('updatedQuestions', JSON.stringify(currentQuestions));
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   return async ({result}) => {
@@ -42,21 +53,32 @@ const submitCreateRetro = (({data}) => {
 </script>
 
 <div class="container p-10 space-y-4">
-  <h1 class="text-center">Create Retro</h1>
+  <h1 class="text-center">Edit {retro.title}</h1>
   <hr />
 
   <form
-    action="?/create"
+    action="?/updateRetro"
     method="POST"
     class="flex flex-col items-center"
-    use:enhance={submitCreateRetro}
+    use:enhance={submitUpdateRetro}
   >
-    <Input id="title" label="Title" value={form?.data?.title} required disabled={loading} />
-    <TextArea id="details" label="Details" value={form?.data?.details} disabled={loading} />
+    <Input
+      id="title"
+      label="Title"
+      value={form?.data?.title ?? retro.title}
+      required
+      disabled={loading}
+    />
+    <TextArea
+      id="details"
+      label="Details"
+      value={form?.data?.details ?? retro.details}
+      disabled={loading}
+    />
     <Select
       id="state"
       label="State"
-      value={form?.data?.state}
+      value={form?.data?.state ?? retro.state}
       options={states}
       required
       disabled={loading}
@@ -64,17 +86,22 @@ const submitCreateRetro = (({data}) => {
     <Input
       id="dateTime"
       label="Date and time"
-      value={form?.data?.dateTime}
+      value={form?.data?.dateTime ?? new Date(retro.scheduled).toLocaleString('sv-SE')}
       required
       disabled={loading}
       type="datetime-local"
     />
 
-    <RetroQuestions bind:questions {loading} />
+    <RetroQuestions
+      bind:questions={newQuestions}
+      bind:currentQuestions
+      {loading}
+      on:deletedCurrent={handleDeletedCurrentQuestion}
+    />
 
     <div class="w-full max-w-lg">
       <button type="submit" class="btn variant-filled-primary w-full max-w-lg" disabled={loading}
-        >Create Retro</button
+        >Update Retro</button
       >
     </div>
   </form>

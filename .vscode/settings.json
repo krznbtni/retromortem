@@ -20,5 +20,14 @@
   "svelte.plugin.svelte.defaultScriptLanguage": "ts",
   "typescript.preferences.autoImportFileExcludePatterns": ["internal"],
   "typescript.surveys.enabled": false,
-  "cSpell.words": ["cssnano", "daisyui", "formdata", "pocketbase", "retromortem", "tailwindcss"]
+  "cSpell.words": [
+    "cssnano",
+    "formdata",
+    "iconify",
+    "pocketbase",
+    "retromortem",
+    "skeletonlabs",
+    "tailwindcss",
+    "unplugin"
+  ]
 }

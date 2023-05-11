@@ -7,12 +7,12 @@ export let required = false;
 export let errors: string[] | undefined = [];
 </script>
 
-<div class="form-control w-full max-w-lg mb-2">
+<div class="w-full max-w-lg">
   <label for={id} class="label font-medium pb-1">
     <span class="label-text">{label}</span>
   </label>
 
-  <input {disabled} {id} {required} type="date" {value} name={id} />
+  <input class="input" {disabled} {id} {required} type="datetime-local" {value} name={id} />
 
   {#if errors}
     {#each errors as error}

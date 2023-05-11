@@ -1,49 +1,41 @@
 <script lang="ts">
 import {page} from '$app/stores';
-
-const AVATAR_PLACEHOLDER = 'https://ui-avatars.com/api/?background=random';
+import {drawerStore} from '@skeletonlabs/skeleton';
 
 $: isLoggedIn = $page.data.user;
+$: classesActive = (href: string) => (href === $page.url.pathname ? '!bg-primary-500' : '');
 
-let isToggled = false;
-
-function toggleDropdown(): void {
-  isToggled = !isToggled;
+function drawerClose(): void {
+  drawerStore.close();
 }
 </script>
 
-<nav class="navbar bg-base-100">
-  <div class="flex-1">
-    <a class="btn btn-ghost normal-case text-xl" href="/">RetroMortem</a>
-  </div>
+<nav class="list-nav p-4">
+  <ul>
+    <li><a href="/" class={classesActive('/')} on:click={drawerClose}>Homepage</a></li>
 
-  {#if isLoggedIn}
-    <div class="flex-none">
-      <div class="dropdown dropdown-end">
-        <button class="btn btn-ghost btn-circle avatar" on:click={toggleDropdown}>
-          <div class="w-10 rounded-full">
-            <img src={AVATAR_PLACEHOLDER} alt="Profile avatar" />
-          </div>
-        </button>
+    {#if isLoggedIn}
+      <li>
+        <a href="/retro" class={classesActive('/retro')} on:click={drawerClose}>Retro list</a>
+      </li>
 
-        {#if isToggled}
-          <ul
-            class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
-          >
-            <li>
-              <a class="justify-between" href="/profile">Profile</a>
-            </li>
+      <li>
+        <a href="/retro/create" class={classesActive('/retro/create')} on:click={drawerClose}
+          >Create Retro</a
+        >
+      </li>
 
-            <li>
-              <form action="/api/logout" method="POST">
-                <button class="w-full text-start" type="submit">Log out</button>
-              </form>
-            </li>
-          </ul>
-        {/if}
-      </div>
-    </div>
-  {:else}
-    <a class="btn btn-outline" href="/login">Log in</a>
-  {/if}
+      <hr />
+      <li>
+        <form action="/api/logout" method="POST">
+          <button class="w-full" type="submit" on:click={drawerClose}>Log out</button>
+        </form>
+      </li>
+    {:else}
+      <hr />
+      <li>
+        <a href="/login" class={classesActive('/login')} on:click={drawerClose}>Log in</a>
+      </li>
+    {/if}
+  </ul>
 </nav>
