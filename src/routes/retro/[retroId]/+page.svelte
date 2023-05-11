@@ -13,6 +13,7 @@ import {
 } from '$lib/types/pocketbase-types';
 import {pb} from '$lib/pocketbase';
 import {Input} from '$lib/components';
+import {enhance, type SubmitFunction} from '$app/forms';
 
 interface ExpandedVotes extends VotesResponse {
   expand: {
@@ -51,7 +52,8 @@ let answersUnsubscribe: () => Promise<void>;
 $: ({retro, isOrganizer, isAttendee, userId} = data);
 
 $: attendees = retro.expand.attendees || [];
-$: questions = retro.expand.questions || [];
+$: questions =
+  retro.expand.questions.sort((a, b) => new Date(a.created) - new Date(b.created)) || [];
 
 $: created = new Date(retro.created).toLocaleString('sv-SE');
 $: updated = new Date(retro.updated).toLocaleString('sv-SE');
@@ -153,6 +155,35 @@ async function removeVote(answer: ExpandedAnswers): Promise<void> {
     headers: {'Content-Type': 'application/json'},
   });
 }
+
+// TODO: handle errors/failure
+const submitJoinRetro = (() => {
+  if (loading) {
+    return;
+  }
+
+  loading = true;
+
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  return async ({update}) => {
+    await update();
+    loading = false;
+  };
+}) satisfies SubmitFunction;
+
+const submitLeaveRetro = (() => {
+  if (loading) {
+    return;
+  }
+
+  loading = true;
+
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  return async ({update}) => {
+    await update();
+    loading = false;
+  };
+}) satisfies SubmitFunction;
 </script>
 
 <div class="container p-10 space-y-4">
@@ -176,184 +207,140 @@ async function removeVote(answer: ExpandedAnswers): Promise<void> {
   <p><strong>Organizer:</strong> {retro.expand.organizer.username}</p>
   <p><strong>Details:</strong> {retro.details}</p>
 
-  <form class="flex flex-col w-full max-w-screen-sm" method="POST">
-    <h3 class="text-2xl font-bold mb-4">
-      Participants
+  <div class="flex w-full items-center">
+    <h2>Participants</h2>
 
-      {#if showJoinButton}
+    {#if showJoinButton}
+      <form method="POST" class="ml-4" use:enhance={submitJoinRetro}>
         <button
+          class="btn btn-sm variant-filled-primary"
+          disabled={loading}
           formaction="?/joinRetro"
-          class:btn-disabled={loading}
-          class:loading
-          class="btn btn-accent btn-xs gap-1 ml-4"
         >
-          {#if !loading}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-          {/if}
-          ? JOIN ?
-          {#if !loading}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-          {/if}
+          <span>Join</span>
+          <span class="text-base"><Icon icon="mdi:account-plus" /></span>
         </button>
-      {/if}
+      </form>
+    {/if}
 
-      {#if showLeaveButton}
+    {#if showLeaveButton}
+      <form method="POST" class="ml-4" use:enhance={submitLeaveRetro}>
         <button
+          class="btn btn-sm variant-filled-warning"
+          disabled={loading}
           formaction="?/leaveRetro"
-          class:btn-disabled={loading}
-          class:loading
-          class="btn btn-warning btn-xs gap-1 ml-4"
         >
-          {#if !loading}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          {/if}
-          ? LEAVE ?
-          {#if !loading}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          {/if}
+          <span>Leave</span>
+          <span class="text-base"><Icon icon="mdi:account-cancel" /></span>
         </button>
-      {/if}
-    </h3>
+      </form>
+    {/if}
+  </div>
 
-    <div class="flex flex-wrap gap-3 mb-4">
-      {#if !attendees.length}
-        <p class="text-sm mb-2">lol u has no friends?</p>
-      {/if}
-
+  <div class="flex flex-wrap gap-3">
+    {#if !attendees.length}
+      <span>lol u has no friends?</span>
+    {:else}
       {#each attendees as attendee}
-        <div class="badge badge-lg badge-outline">{attendee.name}</div>
+        <span class="badge variant-filled">{attendee.name}</span>
       {/each}
-    </div>
+    {/if}
+  </div>
 
-    <h3 class="text-2xl font-bold mb-4">Questions</h3>
+  <div class="flex flex-col w-full">
+    <h2>Questions</h2>
 
-    {#each questions as question}
-      <h4 class="text-md font-bold mb-4">{question.title}</h4>
+    {#each questions as question (question.id)}
+      <article class="mt-4">
+        <h3>{question.title}</h3>
 
-      {#if question.expand.answers}
-        {#each question.expand.answers as answer}
-          <p class="text-sm-mb-2">
-            <strong>Creator:</strong>
-            {answer.expand.creator.username || answer.expand.creator.email}
-          </p>
-          <p class="text-sm-mb-2"><strong>Text:</strong> {answer.text}</p>
-          <p class="text-sm-mb-2">
-            <strong>Votes:</strong>
+        <section class="m-3 border-l-4 p-1">
+          {#if question.expand.answers}
+            {#each question.expand.answers as answer, index (answer.id)}
+              <article
+                class="m-3 border-l-4 pl-3"
+                class:border-l-indigo-500={index % 2}
+                class:border-l-yellow-500={!(index % 2)}
+              >
+                <p>
+                  <strong>Creator:</strong>
+                  {answer.expand.creator.username || answer.expand.creator.email}
+                </p>
 
-            {#if answer.expand.votes}
-              {#each answer.expand.votes as vote}
-                <div class="badge badge-lg badge-outline">
-                  {vote.expand.user.name || vote.expand.user.username}
-                </div>
-              {/each}
-            {/if}
-          </p>
+                <p><strong>Text:</strong> {answer.text}</p>
 
-          {#if hasVotedForAnswer(answer.expand.votes)}
-            <button
-              class:btn-disabled={loading}
-              class:loading
-              class="btn btn-accent btn-xs gap-1 mb-2"
-              on:click={() => removeVote(answer)}
-              type="button"
-            >
-              Remove vote
-            </button>
-          {:else}
-            <button
-              class:btn-disabled={loading}
-              class:loading
-              class="btn btn-accent btn-xs gap-1 mb-2"
-              on:click={() => addVote(answer)}
-              type="button"
-            >
-              Add vote
-            </button>
+                <p>
+                  <strong>Votes:</strong>
+                  {#if answer.expand.votes}
+                    {#each answer.expand.votes as vote, index (vote.id)}
+                      <span class="badge variant-filled" class:ml-3={index !== 0}>
+                        {vote.expand.user.name || vote.expand.user.username}
+                      </span>
+                    {/each}
+                  {/if}
+                </p>
+
+                {#if hasVotedForAnswer(answer.expand.votes)}
+                  <button
+                    class="btn btn-sm variant-filled-warning mt-2"
+                    disabled={loading}
+                    type="button"
+                    on:click={() => removeVote(answer)}
+                  >
+                    <span>Remove vote</span>
+                    <span class="text-base"><Icon icon="mdi:thumbs-up-down" /></span>
+                  </button>
+                {:else}
+                  <button
+                    class="btn btn-sm variant-filled-primary mt-2"
+                    disabled={loading}
+                    type="button"
+                    on:click={() => addVote(answer)}
+                  >
+                    <span>Add vote</span>
+                    <span class="text-base"><Icon icon="mdi:thumbs-up-down" /></span>
+                  </button>
+                {/if}
+
+                <hr class="my-3" />
+              </article>
+            {/each}
           {/if}
-        {/each}
-      {/if}
 
-      {#each newAnswers as newAnswer, index}
-        {#if newAnswer.questionId === question.id}
-          <Input
-            id="answer-{index}"
-            label="Answer"
-            bind:value={newAnswer.text}
-            disabled={loading}
-          />
+          {#each newAnswers as newAnswer, index}
+            {#if newAnswer.questionId === question.id}
+              <div class="flex w-full m-3">
+                <Input
+                  id="answer-{index}"
+                  label="Answer"
+                  bind:value={newAnswer.text}
+                  disabled={loading}
+                />
+
+                <div class="mt-9">
+                  <button
+                    class="btn btn-sm variant-filled-primary ml-3"
+                    disabled={loading}
+                    on:click={() => publishAnswer(index)}
+                    type="button"
+                  >
+                    <span>Publish</span>
+                  </button>
+                </div>
+              </div>
+            {/if}
+          {/each}
+
           <button
-            class:btn-disabled={loading}
-            class:loading
-            class="btn btn-accent btn-xs gap-1 mb-2"
-            on:click={() => publishAnswer(index)}
+            class="btn btn-sm variant-filled-secondary ml-3"
+            disabled={loading}
+            on:click={() => draftAnswer(question.id)}
             type="button"
           >
-            Publish
+            Draft answer
           </button>
-        {/if}
-      {/each}
-
-      <button
-        class:btn-disabled={loading}
-        class:loading
-        class="btn btn-accent btn-xs gap-1"
-        on:click={() => draftAnswer(question.id)}
-        type="button"
-      >
-        Add draft
-      </button>
+        </section>
+      </article>
     {/each}
-  </form>
+  </div>
 </div>

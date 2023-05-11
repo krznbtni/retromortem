@@ -43,8 +43,6 @@ function drawerOpen(): void {
   </svelte:fragment>
 
   <slot />
-
-  <svelte:fragment slot="footer">Footer</svelte:fragment>
 </AppShell>
 
 <style lang="postcss"></style>
