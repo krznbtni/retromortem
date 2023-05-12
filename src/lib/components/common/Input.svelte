@@ -28,6 +28,7 @@ function handleInput(event: Event): void {
       class="input variant-form-material"
       name={id}
       on:input={handleInput}
+      on:change
     />
   </label>
 </div>

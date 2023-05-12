@@ -3,6 +3,7 @@
 */
 
 export enum Collections {
+	Actions = "actions",
 	Answers = "answers",
 	Questions = "questions",
 	Retrospectives = "retrospectives",
@@ -34,6 +35,19 @@ export type AuthSystemFields<T = never> = {
 
 // Record types for each collection
 
+export enum ActionsStateOptions {
+	"todo" = "todo",
+	"in progress" = "in progress",
+	"done" = "done",
+	"cancelled" = "cancelled",
+}
+export type ActionsRecord = {
+	text: string
+	due?: IsoDateString
+	state: ActionsStateOptions
+	assignees?: RecordIdString[]
+}
+
 export type AnswersRecord = {
 	creator: RecordIdString
 	text: string
@@ -52,13 +66,14 @@ export enum RetrospectivesStateOptions {
 	"finished" = "finished",
 }
 export type RetrospectivesRecord = {
-	title: string 
+	title: string
 	details?: string
 	scheduled?: IsoDateString
 	state: RetrospectivesStateOptions
 	organizer: RecordIdString
 	attendees?: RecordIdString[]
 	questions?: RecordIdString[]
+	actions?: RecordIdString[]
 }
 
 export type UsersRecord = {
@@ -67,10 +82,11 @@ export type UsersRecord = {
 }
 
 export type VotesRecord = {
-	user: RecordIdString
+	user?: RecordIdString
 }
 
 // Response types include system fields and match responses from the PocketBase API
+export type ActionsResponse<Texpand = unknown> = Required<ActionsRecord> & BaseSystemFields<Texpand>
 export type AnswersResponse<Texpand = unknown> = Required<AnswersRecord> & BaseSystemFields<Texpand>
 export type QuestionsResponse<Texpand = unknown> = Required<QuestionsRecord> & BaseSystemFields<Texpand>
 export type RetrospectivesResponse<Texpand = unknown> = Required<RetrospectivesRecord> & BaseSystemFields<Texpand>
@@ -80,6 +96,7 @@ export type VotesResponse<Texpand = unknown> = Required<VotesRecord> & BaseSyste
 // Types containing all Records and Responses, useful for creating typing helper functions
 
 export type CollectionRecords = {
+	actions: ActionsRecord
 	answers: AnswersRecord
 	questions: QuestionsRecord
 	retrospectives: RetrospectivesRecord
@@ -88,6 +105,7 @@ export type CollectionRecords = {
 }
 
 export type CollectionResponses = {
+	actions: ActionsResponse
 	answers: AnswersResponse
 	questions: QuestionsResponse
 	retrospectives: RetrospectivesResponse

@@ -5,14 +5,16 @@ import type {PageData} from './$types';
 import {onDestroy, onMount} from 'svelte';
 import {
   Collections,
+  type ActionsResponse,
   type AnswersResponse,
   type QuestionsResponse,
   type RetrospectivesResponse,
   type UsersResponse,
   type VotesResponse,
+  ActionsStateOptions,
 } from '$lib/types/pocketbase-types';
 import {pb} from '$lib/pocketbase';
-import {Input} from '$lib/components';
+import {Input, Select} from '$lib/components';
 import {enhance, type SubmitFunction} from '$app/forms';
 import {modalStore, type ModalSettings} from '@skeletonlabs/skeleton';
 import {goto} from '$app/navigation';
@@ -36,23 +38,33 @@ interface ExpandedQuestion extends QuestionsResponse {
   };
 }
 
+interface ExpandedAction extends ActionsResponse {
+  expand: {
+    assignees: Array<UsersResponse>;
+  };
+}
+
 interface ExpandedRetrospective extends RetrospectivesResponse {
   expand: {
     organizer: UsersResponse;
     attendees: Array<UsersResponse>;
     questions: Array<ExpandedQuestion>;
+    actions: Array<ExpandedAction>;
   };
 }
 
 export let data: PageData;
 
+let actionStates = Object.values(ActionsStateOptions);
 let loading = false;
 let retrosUnsubscribe: () => Promise<void>;
 let questionsUnsubscribe: () => Promise<void>;
 let answersUnsubscribe: () => Promise<void>;
+let actionsUnsubscribe: () => Promise<void>;
 
 $: ({retro, isOrganizer, isAttendee, userId} = data);
 
+$: actions = retro.expand.actions || [];
 $: attendees = retro.expand.attendees || [];
 $: questions =
   retro.expand.questions?.sort((a, b) => +new Date(a.created) - +new Date(b.created)) || [];
@@ -70,7 +82,7 @@ $: showLeaveButton = !isOrganizer && isAttendee;
 async function refetchRetro(): Promise<ExpandedRetrospective> {
   return pb.collection(Collections.Retrospectives).getOne<ExpandedRetrospective>(retro.id, {
     expand:
-      'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user',
+      'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
   });
 }
 
@@ -97,12 +109,19 @@ onMount(async () => {
       void refetchRetro().then(res => (retro = res));
     }
   });
+
+  actionsUnsubscribe = await pb.collection(Collections.Actions).subscribe('*', ({record}) => {
+    if (retro.actions.includes(record.id)) {
+      void refetchRetro().then(res => (retro = res));
+    }
+  });
 });
 
 onDestroy(async () => {
   await retrosUnsubscribe?.();
   await questionsUnsubscribe?.();
   await answersUnsubscribe?.();
+  await actionsUnsubscribe?.();
 });
 
 interface NewAnswer {
@@ -116,6 +135,17 @@ function draftAnswer(questionId: string): void {
   newAnswers = [...newAnswers, {questionId, text: ''}];
 }
 
+interface NewAction {
+  text: string;
+  assignees: Array<string>;
+}
+
+let newActions: Array<NewAction> = [];
+
+function draftAction(): void {
+  newActions = [...newActions, {assignees: [], text: ''}];
+}
+
 async function publishAnswer(index: number): Promise<void> {
   const newAnswer = newAnswers[index];
 
@@ -126,6 +156,18 @@ async function publishAnswer(index: number): Promise<void> {
   });
 
   newAnswers = newAnswers.filter((_, i) => i !== index);
+}
+
+async function publishAction(index: number): Promise<void> {
+  const newAction = newActions[index];
+
+  await fetch('/api/retro/actions/publish', {
+    method: 'POST',
+    body: JSON.stringify({...newAction, retroId: retro.id}),
+    headers: {'Content-Type': 'application/json'},
+  });
+
+  newActions = newActions.filter((_, i) => i !== index);
 }
 
 function hasVotedForAnswer(votes: Array<ExpandedVotes> | undefined): boolean {
@@ -190,6 +232,7 @@ const submitLeaveRetro = (() => {
 }) satisfies SubmitFunction;
 
 let isEditingAnswers: Record<string, string> = {};
+let isEditingActions: Record<string, ActionsResponse> = {};
 
 function setIsEditingAnswer({id, text}: {id: string; text: string}): void {
   if (id in isEditingAnswers) {
@@ -197,6 +240,15 @@ function setIsEditingAnswer({id, text}: {id: string; text: string}): void {
     isEditingAnswers = {...isEditingAnswers};
   } else {
     isEditingAnswers[id] = text;
+  }
+}
+
+function setIsEditingAction(action: ActionsResponse): void {
+  if (action.id in isEditingActions) {
+    delete isEditingActions[action.id];
+    isEditingActions = {...isEditingActions};
+  } else {
+    isEditingActions[action.id] = action;
   }
 }
 
@@ -211,6 +263,28 @@ async function updateAnswer(id: string): Promise<void> {
 
   delete isEditingAnswers[id];
   isEditingAnswers = {...isEditingAnswers};
+
+  loading = false;
+}
+
+async function updateAction(id: string): Promise<void> {
+  loading = true;
+
+  const allMembers = [retro.expand.organizer, ...retro.expand.attendees];
+  const selectedUserames = Object.keys(assigneeRecord[id]).filter(f => assigneeRecord[id][f]);
+  const selectedIds = allMembers
+    .filter(member => selectedUserames.includes(member.username))
+    .map(member => member.id);
+  isEditingActions[id].assignees = selectedIds;
+
+  await fetch(`/api/retro/actions/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(isEditingActions[id]),
+    headers: {'Content-Type': 'application/json'},
+  });
+
+  delete isEditingActions[id];
+  isEditingActions = {...isEditingActions};
 
   loading = false;
 }
@@ -242,6 +316,33 @@ function deleteAnswer(id: string): void {
   modalStore.trigger(modal);
 }
 
+function deleteAction(id: string): void {
+  loading = true;
+
+  const modal: ModalSettings = {
+    type: 'confirm',
+    title: 'Please Confirm',
+    body: 'Are you sure you wish to delete this action?',
+    // TRUE if confirm pressed, FALSE if cancel pressed
+    response: (r: boolean) => {
+      if (r) {
+        void fetch(`/api/retro/actions/${id}`, {
+          method: 'DELETE',
+          headers: {'Content-Type': 'application/json'},
+        });
+
+        if (isEditingActions[id]) {
+          delete isEditingActions[id];
+          isEditingActions = {...isEditingActions};
+        }
+      }
+      loading = false;
+    },
+  };
+
+  modalStore.trigger(modal);
+}
+
 function deleteRetro(): void {
   loading = true;
 
@@ -264,6 +365,26 @@ function deleteRetro(): void {
 
   modalStore.trigger(modal);
 }
+
+let assigneeRecord: Record<string, Record<string, boolean>>;
+
+$: assigneeRecord = retro.expand.actions.reduce((prev, curr) => {
+  const {assignees, id} = curr;
+  const allMembers = [retro.expand.organizer, ...retro.expand.attendees];
+
+  const x: Record<string, boolean> = allMembers.reduce(
+    (prev2, curr2) => ({
+      ...prev2,
+      [curr2.username]: assignees.includes(curr2.id),
+    }),
+    {},
+  );
+
+  return {
+    ...prev,
+    [id]: x,
+  };
+}, {});
 </script>
 
 <div class="container p-10 space-y-4">
@@ -333,7 +454,7 @@ function deleteRetro(): void {
       <span>lol u has no friends?</span>
     {:else}
       {#each attendees as attendee}
-        <span class="badge variant-filled">{attendee.name}</span>
+        <span class="badge variant-filled">{attendee.username}</span>
       {/each}
     {/if}
   </div>
@@ -491,5 +612,159 @@ function deleteRetro(): void {
         </section>
       </article>
     {/each}
+  </div>
+
+  <div class="flex w-full flex-col">
+    <h2>Actions</h2>
+
+    {#each actions as action, index (action.id)}
+      <article
+        class="m-3 border-l-4 pl-3"
+        class:border-l-indigo-500={index % 2}
+        class:border-l-yellow-500={!(index % 2)}
+      >
+        <section class="flex items-center">
+          {#if !(action.id in isEditingActions)}
+            <p>
+              <strong>State:</strong>
+              {action.state}
+            </p>
+          {:else}
+            <Select
+              id="action-state-{action.id}"
+              label="State"
+              bind:value={isEditingActions[action.id].state}
+              options={actionStates}
+              disabled={loading}
+            />
+          {/if}
+
+          {#if isOrganizer || isAttendee}
+            <button
+              class="btn btn-sm variant-filled-primary ml-auto"
+              disabled={loading}
+              type="button"
+              on:click={() => setIsEditingAction(action)}
+            >
+              <span>
+                <Icon icon="mdi:pencil" />
+              </span>
+            </button>
+
+            <button
+              class="btn btn-sm variant-filled-error ml-3"
+              disabled={loading}
+              type="button"
+              on:click={() => deleteAction(action.id)}
+            >
+              <span>
+                <Icon icon="mdi:delete-forever" />
+              </span>
+            </button>
+          {/if}
+        </section>
+
+        {#if !(action.id in isEditingActions)}
+          <p>
+            <strong>Due:</strong>
+            {action.due ? new Date(action.due).toLocaleString('sv-SE') : ''}
+          </p>
+        {:else}
+          <Input
+            id="dateTime-{action.id}"
+            label="Due"
+            value={isEditingActions[action.id].due}
+            disabled={loading}
+            type="datetime-local"
+            on:change={event => (isEditingActions[action.id].due = event.target.value)}
+          />
+        {/if}
+
+        {#if !(action.id in isEditingActions)}
+          <p>
+            <strong>Assignees:</strong>
+            {#if action.expand.assignees}
+              {#each action.expand.assignees as assignee}
+                <span class="badge variant-filled">{assignee.username}</span>
+              {/each}
+            {/if}
+          </p>
+        {:else}
+          {#each Object.keys(assigneeRecord[action.id]) as f, index}
+            <span
+              class="chip {assigneeRecord[action.id][f] ? 'variant-filled' : 'variant-soft'}"
+              class:ml-3={index !== 0}
+              on:click={() => {
+                assigneeRecord[action.id][f] = !assigneeRecord[action.id][f];
+              }}
+              on:keypress
+            >
+              <span>{f}</span>
+            </span>
+          {/each}
+        {/if}
+
+        {#if !(action.id in isEditingActions)}
+          <p><strong>Text:</strong> {action.text}</p>
+        {:else}
+          <Input
+            id="action-{action.id}"
+            label="Action"
+            bind:value={isEditingActions[action.id].text}
+            disabled={loading}
+          />
+        {/if}
+
+        {#if action.id in isEditingActions}
+          <section class="flex mb-3">
+            <button
+              class="btn btn-sm variant-filled-primary"
+              disabled={loading}
+              on:click={() => updateAction(action.id)}
+              type="button"
+            >
+              <span>Update</span>
+            </button>
+
+            <button
+              class="btn btn-sm variant-filled-warning ml-3"
+              disabled={loading}
+              on:click={() => setIsEditingAction(action)}
+              type="button"
+            >
+              <span>Cancel</span>
+            </button>
+          </section>
+        {/if}
+      </article>
+    {/each}
+
+    {#each newActions as newAction, index}
+      <div class="flex w-full m-3">
+        <Input id="action-{index}" label="Action" bind:value={newAction.text} disabled={loading} />
+
+        <div class="mt-9">
+          <button
+            class="btn btn-sm variant-filled-primary"
+            disabled={loading}
+            on:click={() => publishAction(index)}
+            type="button"
+          >
+            <span>Publish</span>
+          </button>
+        </div>
+      </div>
+    {/each}
+
+    {#if isOrganizer || isAttendee}
+      <button
+        class="btn btn-sm variant-filled-tertiary"
+        disabled={loading}
+        on:click={draftAction}
+        type="button"
+      >
+        Draft action
+      </button>
+    {/if}
   </div>
 </div>

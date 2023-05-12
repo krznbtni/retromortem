@@ -7,6 +7,7 @@ import {
   type RetrospectivesResponse,
   type UsersResponse,
   type VotesResponse,
+  type ActionsResponse,
 } from '$lib/types/pocketbase-types';
 import {error, redirect} from '@sveltejs/kit';
 import type {ClientResponseError} from 'pocketbase';
@@ -30,11 +31,18 @@ interface ExpandedQuestion extends QuestionsResponse {
   };
 }
 
+interface ExpandedAction extends ActionsResponse {
+  expand: {
+    assignees: Array<UsersResponse>;
+  };
+}
+
 interface ExpandedRetrospective extends RetrospectivesResponse {
   expand: {
     organizer: UsersResponse;
     attendees: Array<UsersResponse>;
     questions: Array<ExpandedQuestion>;
+    actions: Array<ExpandedAction>;
   };
 }
 
@@ -49,7 +57,7 @@ export const load = (async event => {
   const retro = await fetchRetro<ExpandedRetrospective>(
     locals,
     retroId,
-    'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user',
+    'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
   );
 
   return {
