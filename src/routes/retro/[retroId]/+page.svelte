@@ -53,7 +53,7 @@ $: ({retro, isOrganizer, isAttendee, userId} = data);
 
 $: attendees = retro.expand.attendees || [];
 $: questions =
-  retro.expand.questions.sort((a, b) => +new Date(a.created) - +new Date(b.created)) || [];
+  retro.expand.questions?.sort((a, b) => +new Date(a.created) - +new Date(b.created)) || [];
 
 $: created = new Date(retro.created).toLocaleString('sv-SE');
 $: updated = new Date(retro.updated).toLocaleString('sv-SE');
