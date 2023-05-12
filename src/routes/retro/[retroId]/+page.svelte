@@ -203,9 +203,9 @@ function setIsEditingAnswer({id, text}: {id: string; text: string}): void {
 async function updateAnswer(id: string): Promise<void> {
   loading = true;
 
-  await fetch('/api/retro/answers/update', {
-    method: 'POST',
-    body: JSON.stringify({id, text: isEditingAnswers[id]}),
+  await fetch(`/api/retro/answers/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({text: isEditingAnswers[id]}),
     headers: {'Content-Type': 'application/json'},
   });
 
@@ -225,9 +225,8 @@ function deleteAnswer(id: string): void {
     // TRUE if confirm pressed, FALSE if cancel pressed
     response: (r: boolean) => {
       if (r) {
-        void fetch('/api/retro/answers/delete', {
-          method: 'POST',
-          body: JSON.stringify({id}),
+        void fetch(`/api/retro/answers/${id}`, {
+          method: 'DELETE',
           headers: {'Content-Type': 'application/json'},
         });
 
