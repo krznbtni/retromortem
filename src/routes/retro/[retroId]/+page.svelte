@@ -210,6 +210,23 @@ async function updateAnswer(id: string): Promise<void> {
 
   loading = false;
 }
+
+async function deleteAnswer(id: string): Promise<void> {
+  loading = true;
+
+  await fetch('/api/retro/answers/delete', {
+    method: 'POST',
+    body: JSON.stringify({id}),
+    headers: {'Content-Type': 'application/json'},
+  });
+
+  if (isEditingAnswers[id]) {
+    delete isEditingAnswers[id];
+    isEditingAnswers = {...isEditingAnswers};
+  }
+
+  loading = false;
+}
 </script>
 
 <div class="container p-10 space-y-4">
@@ -288,7 +305,7 @@ async function updateAnswer(id: string): Promise<void> {
                 class:border-l-indigo-500={index % 2}
                 class:border-l-yellow-500={!(index % 2)}
               >
-                <section class="flex justify-between items-center">
+                <section class="flex items-center">
                   <p>
                     <strong>Creator:</strong>
                     {answer.expand.creator.username}
@@ -296,13 +313,26 @@ async function updateAnswer(id: string): Promise<void> {
 
                   {#if answer.expand.creator.id === userId}
                     <button
-                      class="btn btn-sm variant-filled-primary"
+                      class="btn btn-sm variant-filled-primary ml-auto"
                       disabled={loading}
                       type="button"
                       on:click={() => setIsEditingAnswer(answer)}
                     >
                       <span>
                         <Icon icon="mdi:pencil" />
+                      </span>
+                    </button>
+                  {/if}
+
+                  {#if answer.expand.creator.id === userId}
+                    <button
+                      class="btn btn-sm variant-filled-error ml-3"
+                      disabled={loading}
+                      type="button"
+                      on:click={() => deleteAnswer(answer.id)}
+                    >
+                      <span>
+                        <Icon icon="mdi:delete-forever" />
                       </span>
                     </button>
                   {/if}
