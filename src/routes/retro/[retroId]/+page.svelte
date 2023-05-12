@@ -53,7 +53,7 @@ $: ({retro, isOrganizer, isAttendee, userId} = data);
 
 $: attendees = retro.expand.attendees || [];
 $: questions =
-  retro.expand.questions.sort((a, b) => new Date(a.created) - new Date(b.created)) || [];
+  retro.expand.questions.sort((a, b) => +new Date(a.created) - +new Date(b.created)) || [];
 
 $: created = new Date(retro.created).toLocaleString('sv-SE');
 $: updated = new Date(retro.updated).toLocaleString('sv-SE');
@@ -184,6 +184,32 @@ const submitLeaveRetro = (() => {
     loading = false;
   };
 }) satisfies SubmitFunction;
+
+let isEditingAnswers: Record<string, string> = {};
+
+function setIsEditingAnswer({id, text}: {id: string; text: string}): void {
+  if (id in isEditingAnswers) {
+    delete isEditingAnswers[id];
+    isEditingAnswers = {...isEditingAnswers};
+  } else {
+    isEditingAnswers[id] = text;
+  }
+}
+
+async function updateAnswer(id: string): Promise<void> {
+  loading = true;
+
+  await fetch('/api/retro/answers/update', {
+    method: 'POST',
+    body: JSON.stringify({id, text: isEditingAnswers[id]}),
+    headers: {'Content-Type': 'application/json'},
+  });
+
+  delete isEditingAnswers[id];
+  isEditingAnswers = {...isEditingAnswers};
+
+  loading = false;
+}
 </script>
 
 <div class="container p-10 space-y-4">
@@ -262,12 +288,55 @@ const submitLeaveRetro = (() => {
                 class:border-l-indigo-500={index % 2}
                 class:border-l-yellow-500={!(index % 2)}
               >
-                <p>
-                  <strong>Creator:</strong>
-                  {answer.expand.creator.username}
-                </p>
+                <section class="flex justify-between items-center">
+                  <p>
+                    <strong>Creator:</strong>
+                    {answer.expand.creator.username}
+                  </p>
 
-                <p><strong>Text:</strong> {answer.text}</p>
+                  {#if answer.expand.creator.id === userId}
+                    <button
+                      class="btn btn-sm variant-filled-primary"
+                      disabled={loading}
+                      type="button"
+                      on:click={() => setIsEditingAnswer(answer)}
+                    >
+                      <span>
+                        <Icon icon="mdi:pencil" />
+                      </span>
+                    </button>
+                  {/if}
+                </section>
+
+                {#if !(answer.id in isEditingAnswers)}
+                  <p><strong>Text:</strong> {answer.text}</p>
+                {:else}
+                  <Input
+                    id="answer-{answer.id}"
+                    label="Answer"
+                    bind:value={isEditingAnswers[answer.id]}
+                    disabled={loading}
+                  />
+                  <section class="flex mb-3">
+                    <button
+                      class="btn btn-sm variant-filled-primary"
+                      disabled={loading}
+                      on:click={() => updateAnswer(answer.id)}
+                      type="button"
+                    >
+                      <span>Update</span>
+                    </button>
+
+                    <button
+                      class="btn btn-sm variant-filled-warning ml-3"
+                      disabled={loading}
+                      on:click={() => setIsEditingAnswer(answer)}
+                      type="button"
+                    >
+                      <span>Cancel</span>
+                    </button>
+                  </section>
+                {/if}
 
                 <p>
                   <strong>Votes:</strong>
