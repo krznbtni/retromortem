@@ -1,11 +1,12 @@
 <script lang="ts">
 import {applyAction, enhance, type SubmitFunction} from '$app/forms';
-import {invalidateAll} from '$app/navigation';
+import {goto, invalidateAll} from '$app/navigation';
 
 import Input from '$lib/components/common/Input.svelte';
 import RetroQuestions from '$lib/components/retro/RetroQuestions.svelte';
 import Select from '$lib/components/common/Select.svelte';
 import TextArea from '$lib/components/common/TextArea.svelte';
+import {modalStore, type ModalSettings} from '@skeletonlabs/skeleton';
 
 import type {ActionData, PageData} from './$types';
 
@@ -50,6 +51,31 @@ const submitUpdateRetro = (({data}) => {
     loading = false;
   };
 }) satisfies SubmitFunction;
+
+function deleteRetro(): void {
+  loading = true;
+
+  const modal: ModalSettings = {
+    type: 'confirm',
+    title: 'Please Confirm',
+    body: 'Are you sure you wish to delete this retro?',
+    // TRUE if confirm pressed, FALSE if cancel pressed
+    response: (r: boolean) => {
+      if (r) {
+        void fetch(`/api/retro/${retro.id}`, {
+          method: 'DELETE',
+          headers: {'Content-Type': 'application/json'},
+        }).then(() => {
+          void goto('/retro');
+        });
+      }
+
+      loading = false;
+    },
+  };
+
+  modalStore.trigger(modal);
+}
 </script>
 
 <div class="container p-10 space-y-4">
@@ -103,6 +129,15 @@ const submitUpdateRetro = (({data}) => {
       <button type="submit" class="btn variant-filled-primary w-full max-w-lg" disabled={loading}
         >Update Retro</button
       >
+
+      <button
+        class="btn variant-filled-error w-full max-w-lg"
+        disabled={loading}
+        on:click={deleteRetro}
+        type="button"
+      >
+        Delete Retro
+      </button>
     </div>
   </form>
 </div>

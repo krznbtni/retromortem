@@ -14,6 +14,8 @@ import {
 import {pb} from '$lib/pocketbase';
 import {Input} from '$lib/components';
 import {enhance, type SubmitFunction} from '$app/forms';
+import {modalStore, type ModalSettings} from '@skeletonlabs/skeleton';
+import {goto} from '$app/navigation';
 
 interface ExpandedVotes extends VotesResponse {
   expand: {
@@ -78,6 +80,8 @@ onMount(async () => {
     .subscribe(retro.id, ({action}) => {
       if (action === 'update') {
         void refetchRetro().then(res => (retro = res));
+      } else if (action === 'delete') {
+        void goto('/retro');
       }
     });
 
@@ -211,32 +215,77 @@ async function updateAnswer(id: string): Promise<void> {
   loading = false;
 }
 
-async function deleteAnswer(id: string): Promise<void> {
+function deleteAnswer(id: string): void {
   loading = true;
 
-  await fetch('/api/retro/answers/delete', {
-    method: 'POST',
-    body: JSON.stringify({id}),
-    headers: {'Content-Type': 'application/json'},
-  });
+  const modal: ModalSettings = {
+    type: 'confirm',
+    title: 'Please Confirm',
+    body: 'Are you sure you wish to delete your answer?',
+    // TRUE if confirm pressed, FALSE if cancel pressed
+    response: (r: boolean) => {
+      if (r) {
+        void fetch('/api/retro/answers/delete', {
+          method: 'POST',
+          body: JSON.stringify({id}),
+          headers: {'Content-Type': 'application/json'},
+        });
 
-  if (isEditingAnswers[id]) {
-    delete isEditingAnswers[id];
-    isEditingAnswers = {...isEditingAnswers};
-  }
+        if (isEditingAnswers[id]) {
+          delete isEditingAnswers[id];
+          isEditingAnswers = {...isEditingAnswers};
+        }
+      }
+      loading = false;
+    },
+  };
 
-  loading = false;
+  modalStore.trigger(modal);
+}
+
+function deleteRetro(): void {
+  loading = true;
+
+  const modal: ModalSettings = {
+    type: 'confirm',
+    title: 'Please Confirm',
+    body: 'Are you sure you wish to delete this retro?',
+    // TRUE if confirm pressed, FALSE if cancel pressed
+    response: (r: boolean) => {
+      if (r) {
+        void fetch(`/api/retro/${retro.id}`, {
+          method: 'DELETE',
+          headers: {'Content-Type': 'application/json'},
+        });
+      }
+
+      loading = false;
+    },
+  };
+
+  modalStore.trigger(modal);
 }
 </script>
 
 <div class="container p-10 space-y-4">
-  <div class="flex flex-row justify-between items-center">
+  <div class="flex flex-row items-center">
     <h1>{retro.title}</h1>
 
     {#if isOrganizer}
-      <a href="/retro/{retro.id}/edit">
+      <a href="/retro/{retro.id}/edit" class="ml-auto">
         <Icon icon="mdi:pencil" style="font-size: 1.5rem;" />
       </a>
+
+      <button
+        class="btn btn-sm variant-filled-error ml-3"
+        disabled={loading}
+        type="button"
+        on:click={deleteRetro}
+      >
+        <span>
+          <Icon icon="mdi:delete-forever" />
+        </span>
+      </button>
     {/if}
   </div>
   <hr />
