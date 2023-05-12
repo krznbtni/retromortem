@@ -16,7 +16,7 @@ export async function fetchUsersRetros(locals: App.Locals): Promise<Retrospectiv
       .collection(Collections.Retrospectives)
       .getFullList<RetrospectivesResponse>(undefined, {
         sort: '-created',
-        filter: `organizer = "${locals?.user?.id}"`,
+        filter: `organizer = "${locals?.user?.id}" || attendees.id ?= "${locals?.user?.id}"`,
       });
 
     return serializeNonPOJOs(retros);
