@@ -3,13 +3,15 @@ import '@skeletonlabs/skeleton/themes/theme-skeleton.css';
 import '@skeletonlabs/skeleton/styles/all.css';
 import '../app.postcss';
 
-import {AppBar, AppShell, Drawer, drawerStore} from '@skeletonlabs/skeleton';
+import {AppBar, AppShell, Drawer, Modal, drawerStore} from '@skeletonlabs/skeleton';
 import Navbar from '$lib/components/layout/NavBar.svelte';
 
 function drawerOpen(): void {
   drawerStore.open({});
 }
 </script>
+
+<Modal />
 
 <Drawer position="right" width="w-[280px] md:w-[400px]">
   <h2 class="p-4">Navigation</h2>
