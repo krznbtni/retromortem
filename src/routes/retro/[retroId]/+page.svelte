@@ -1,17 +1,20 @@
 <script lang="ts">
+import {onDestroy, onMount} from 'svelte';
+import type {PageData} from './$types';
+import {enhance, type SubmitFunction} from '$app/forms';
+import {goto} from '$app/navigation';
+
+import {modalStore, type ModalSettings, InputChip, Autocomplete} from '@skeletonlabs/skeleton';
 import Icon from '@iconify/svelte';
 
 import {Collections, type ActionsResponse, type AnswersResponse} from '$lib/types/pocketbase-types';
-import {enhance, type SubmitFunction} from '$app/forms';
-import {goto} from '$app/navigation';
+import {debounce} from '$lib/debounce';
+import {fetchRetro} from '$lib/fetch-retro';
 import {Input, EditActionModal, EditAnswerModal} from '$lib/components';
-import {modalStore, type ModalSettings} from '@skeletonlabs/skeleton';
-import {onDestroy, onMount} from 'svelte';
+import {isTrueObject} from '$lib/is-true-object';
 import {pb} from '$lib/pocketbase';
 import type {ExpandedVotes, ExpandedAnswers, ExpandedRetrospective} from './+page.server';
-import type {PageData} from './$types';
-import {isTrueObject} from '$lib/is-true-object';
-import {fetchRetro} from '$lib/fetch-retro';
+import type {UsersResponse} from '$lib/types/pocketbase-types';
 
 export let data: PageData;
 
@@ -74,6 +77,10 @@ onMount(async () => {
       void refetchRetro().then(res => (retro = res));
     }
   });
+
+  inputChipList = attendees
+    .map(attendee => attendee.username)
+    .filter(username => username !== retro.expand.organizer.username);
 });
 
 onDestroy(async () => {
@@ -325,7 +332,6 @@ function deleteRetro(): void {
     type: 'confirm',
     title: 'Please Confirm',
     body: 'Are you sure you wish to delete this retro?',
-    // TRUE if confirm pressed, FALSE if cancel pressed
     response: (r: boolean) => {
       if (r) {
         void fetch(`/api/retro/${retro.id}`, {
@@ -345,7 +351,8 @@ let assigneeRecord: Record<string, Record<string, boolean>>;
 
 $: assigneeRecord = retro.expand.actions?.reduce((prev, curr) => {
   const {assignees, id} = curr;
-  const allMembers = [retro.expand.organizer, ...retro.expand.attendees];
+
+  const allMembers = [retro.expand.organizer, ...(retro.expand.attendees || [])];
 
   const x: Record<string, boolean> = allMembers.reduce(
     (prev2, curr2) => ({
@@ -360,6 +367,77 @@ $: assigneeRecord = retro.expand.actions?.reduce((prev, curr) => {
     [id]: x,
   };
 }, {});
+
+let inputChip = '';
+let inputChipList: Array<string> = [];
+
+// $: {
+//   inputChipList = attendees
+//     .map(attendee => attendee.username)
+//     .filter(username => username !== retro.expand.organizer.username);
+// }
+
+let autocompleteOptions: Array<{label: string; value: string}> = [];
+
+async function onInputChipSelect(
+  event: CustomEvent<{label: string; value: string}>,
+): Promise<void> {
+  inputChipList = [...inputChipList, event.detail.label];
+  retro.attendees?.push(event.detail.value);
+  retro.attendees = [...retro.attendees];
+  await pb.collection(Collections.Retrospectives).update(retro.id, retro);
+  await updateAutocompleteOptions(inputChip);
+}
+
+async function onChipClick(event: Event): Promise<void> {
+  let username = '';
+
+  if (event instanceof MouseEvent) {
+    if (event.target instanceof HTMLButtonElement) {
+      if (typeof event.target.textContent === 'string') {
+        username = event.target.textContent.split(' ')[0] ?? '';
+        inputChipList = inputChipList.filter(chip => chip !== username);
+      }
+    } else if (event.target instanceof HTMLSpanElement) {
+      if (typeof event.target.parentElement?.textContent === 'string') {
+        username = event.target.parentElement?.textContent.split(' ')[0] ?? '';
+        inputChipList = inputChipList.filter(chip => chip !== username);
+      }
+    }
+  }
+
+  const attendee = attendees.find(attendee => attendee.username === username);
+
+  if (attendee) {
+    retro.attendees = retro.attendees.filter(id => id !== attendee.id);
+    await pb.collection(Collections.Retrospectives).update(retro.id, retro);
+  }
+}
+
+async function updateAutocompleteOptions(val: string): Promise<void> {
+  if (!val.length) {
+    autocompleteOptions = [];
+    return;
+  }
+
+  const list = await pb.collection(Collections.Users).getFullList<UsersResponse>({
+    filter: `id != "${retro.organizer}" && username ~ "${val}"`,
+  });
+
+  autocompleteOptions = list
+    .map(user => ({
+      label: user.username,
+      value: user.id,
+    }))
+    .filter(user => !val.includes(user.label))
+    .filter(user => !inputChipList.includes(user.label));
+
+  autocompleteOptions = [...autocompleteOptions];
+}
+
+const handleSomething = debounce(updateAutocompleteOptions, 100);
+
+$: handleSomething(inputChip);
 </script>
 
 <div class="container p-10 space-y-4">
@@ -424,15 +502,25 @@ $: assigneeRecord = retro.expand.actions?.reduce((prev, curr) => {
     {/if}
   </div>
 
-  <div class="flex flex-wrap gap-3">
-    {#if !attendees.length}
-      <span>lol u has no friends?</span>
-    {:else}
-      {#each attendees as attendee}
-        <span class="badge variant-filled">{attendee.username}</span>
-      {/each}
-    {/if}
-  </div>
+  <InputChip
+    bind:input={inputChip}
+    bind:value={inputChipList}
+    name="attendee-chips"
+    on:click={onChipClick}
+  />
+
+  {#if inputChip.length}
+    <div class="card w-full max-h-48 p-4 overflow-y-auto">
+      {#key autocompleteOptions}
+        <Autocomplete
+          bind:input={inputChip}
+          options={autocompleteOptions}
+          denylist={inputChipList}
+          on:selection={onInputChipSelect}
+        />
+      {/key}
+    </div>
+  {/if}
 
   <div class="flex flex-col w-full">
     <h2>Questions</h2>

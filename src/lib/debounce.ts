@@ -1,15 +1,16 @@
-export const debounce = <F extends (...args: Parameters<F>) => ReturnType<F>>(
-  fn: F,
+export function debounce<T extends unknown[]>(
+  func: (...args: T) => void | Promise<void>,
   delay: number,
-) => {
-  let timeout: ReturnType<typeof setTimeout>;
+): (...args: T) => void {
+  let timer: NodeJS.Timeout | null = null;
 
-  return function (...args: Parameters<F>) {
-    clearTimeout(timeout);
+  return (...args: T) => {
+    if (timer) {
+      clearTimeout(timer);
+    }
 
-    timeout = setTimeout(() => {
-      // @ts-expect-error Can't be fucked with this.
-      fn.apply(this, args);
+    timer = setTimeout(() => {
+      void func.call(null, ...args);
     }, delay);
   };
-};
+}
