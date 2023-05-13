@@ -114,7 +114,7 @@ function draftAction(): void {
 async function publishAnswer(index: number): Promise<void> {
   const newAnswer = newAnswers[index];
 
-  await fetch('/api/retro/answers/publish', {
+  await fetch('/api/retro/answers', {
     method: 'POST',
     body: JSON.stringify({...newAnswer, retroId: retro.id}),
     headers: {'Content-Type': 'application/json'},
@@ -126,9 +126,9 @@ async function publishAnswer(index: number): Promise<void> {
 async function publishAction(index: number): Promise<void> {
   const newAction = newActions[index];
 
-  await fetch('/api/retro/actions/publish', {
+  await fetch(`/api/retro/${retro.id}/actions`, {
     method: 'POST',
-    body: JSON.stringify({...newAction, retroId: retro.id}),
+    body: JSON.stringify(newAction),
     headers: {'Content-Type': 'application/json'},
   });
 
@@ -148,10 +148,8 @@ async function addVote(answer: ExpandedAnswers): Promise<void> {
     return;
   }
 
-  await fetch('/api/retro/answers/vote/add', {
+  await fetch(`/api/retro/${retro.id}/answers/${answer.id}/vote`, {
     method: 'POST',
-    body: JSON.stringify({retroId: retro.id, answerId: answer.id}),
-    headers: {'Content-Type': 'application/json'},
   });
 }
 
@@ -160,10 +158,8 @@ async function removeVote(answer: ExpandedAnswers): Promise<void> {
     return;
   }
 
-  await fetch('/api/retro/answers/vote/remove', {
-    method: 'POST',
-    body: JSON.stringify({retroId: retro.id, answerId: answer.id}),
-    headers: {'Content-Type': 'application/json'},
+  await fetch(`/api/retro/${retro.id}/answers/${answer.id}/vote`, {
+    method: 'DELETE',
   });
 }
 
@@ -265,7 +261,7 @@ async function updateAction(action: ActionsResponse | undefined): Promise<void> 
       .map(member => member.id);
     action.assignees = selectedIds;
 
-    await fetch(`/api/retro/actions/${action.id}`, {
+    await fetch(`/api/actions/${action.id}`, {
       method: 'PUT',
       body: JSON.stringify(action),
       headers: {'Content-Type': 'application/json'},
@@ -308,7 +304,7 @@ function deleteAction(id: string): void {
     // TRUE if confirm pressed, FALSE if cancel pressed
     response: (r: boolean) => {
       if (r) {
-        void fetch(`/api/retro/actions/${id}`, {
+        void fetch(`/api/actions/${id}`, {
           method: 'DELETE',
           headers: {'Content-Type': 'application/json'},
         });

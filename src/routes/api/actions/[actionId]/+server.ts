@@ -4,7 +4,7 @@ import type {ClientResponseError} from 'pocketbase';
 import {Collections, type ActionsResponse} from '$lib/types/pocketbase-types';
 
 export const DELETE = (async ({locals, params}) => {
-  if (!params.id) {
+  if (!params.actionId) {
     throw error(400, 'Invalid request body');
   }
 
@@ -13,7 +13,7 @@ export const DELETE = (async ({locals, params}) => {
   }
 
   try {
-    await locals.pb.collection(Collections.Actions).delete(params.id);
+    await locals.pb.collection(Collections.Actions).delete(params.actionId);
   } catch (err) {
     const e = err as ClientResponseError;
     console.error('DELETE -> e:', e);
@@ -29,7 +29,7 @@ type UpdateBody = ActionsResponse;
 export const PUT = (async ({locals, request, params}) => {
   const body = (await request.json()) as UpdateBody;
 
-  if (!params.id) {
+  if (!params.actionId) {
     throw error(400, 'Invalid request body');
   }
 
@@ -40,7 +40,7 @@ export const PUT = (async ({locals, request, params}) => {
   try {
     const action = await locals.pb
       .collection(Collections.Actions)
-      .getOne<ActionsResponse>(params.id);
+      .getOne<ActionsResponse>(params.actionId);
 
     if (body.text) {
       action.text = body.text;
@@ -58,7 +58,7 @@ export const PUT = (async ({locals, request, params}) => {
       action.due = new Date(body.due).toISOString().replace('T', ' ');
     }
 
-    await locals.pb.collection(Collections.Actions).update(params.id, action);
+    await locals.pb.collection(Collections.Actions).update(params.actionId, action);
   } catch (err) {
     const e = err as ClientResponseError;
     console.error('PUT -> e:', e);

@@ -31,7 +31,7 @@ export const DELETE = (async ({locals, params}) => {
   try {
     const retro = await fetchRetro<ExpandedRetrospective>(
       locals.pb,
-      params.id,
+      params.retroId,
       'questions.answers.votes',
     );
 
@@ -58,7 +58,7 @@ export const DELETE = (async ({locals, params}) => {
       await locals.pb.collection(Collections.Questions).delete(questionId);
     }
 
-    await locals.pb.collection(Collections.Retrospectives).delete(params.id);
+    await locals.pb.collection(Collections.Retrospectives).delete(params.retroId);
   } catch (err) {
     const e = err as ClientResponseError;
     console.error('POST -> e:', e);
