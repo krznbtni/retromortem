@@ -240,7 +240,11 @@ async function updateAnswer(answer: AnswersResponse): Promise<void> {
   loading = false;
 }
 
-async function updateAction(action: ActionsResponse): Promise<void> {
+async function updateAction(action: ActionsResponse | undefined): Promise<void> {
+  if (!action) {
+    return;
+  }
+
   loading = true;
 
   const x = assigneeRecord[action.id];
