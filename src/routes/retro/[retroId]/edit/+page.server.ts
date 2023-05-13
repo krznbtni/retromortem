@@ -7,7 +7,7 @@ import {
   type RetrospectivesRecord,
   type RetrospectivesResponse,
 } from '$lib/types/pocketbase-types';
-import {fetchRetro} from '$lib/server/retro/fetch-retro';
+import {fetchRetro} from '$lib/fetch-retro';
 
 interface ExpandedRetrospective extends RetrospectivesResponse {
   expand: {
@@ -23,7 +23,7 @@ export const load = (async event => {
     throw redirect(303, '/login');
   }
 
-  const retro = await fetchRetro<ExpandedRetrospective>(locals, retroId, 'questions');
+  const retro = await fetchRetro<ExpandedRetrospective>(locals.pb, retroId, 'questions');
 
   if (locals.user.id !== retro.organizer) {
     throw error(401, 'Unauthorized');
@@ -72,7 +72,7 @@ export const actions: Actions = {
     }
 
     const currentRetro = await fetchRetro<ExpandedRetrospective>(
-      locals,
+      locals.pb,
       params.retroId,
       'questions',
     );

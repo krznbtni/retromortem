@@ -1,61 +1,20 @@
 <script lang="ts">
 import Icon from '@iconify/svelte';
 
-import type {PageData} from './$types';
-import {onDestroy, onMount} from 'svelte';
-import {
-  Collections,
-  type ActionsResponse,
-  type AnswersResponse,
-  type QuestionsResponse,
-  type RetrospectivesResponse,
-  type UsersResponse,
-  type VotesResponse,
-  ActionsStateOptions,
-} from '$lib/types/pocketbase-types';
-import {pb} from '$lib/pocketbase';
-import {Input, Select} from '$lib/components';
+import {Collections, type ActionsResponse, type AnswersResponse} from '$lib/types/pocketbase-types';
 import {enhance, type SubmitFunction} from '$app/forms';
-import {modalStore, type ModalSettings} from '@skeletonlabs/skeleton';
 import {goto} from '$app/navigation';
-
-interface ExpandedVotes extends VotesResponse {
-  expand: {
-    user: UsersResponse;
-  };
-}
-
-interface ExpandedAnswers extends AnswersResponse {
-  expand: {
-    creator: UsersResponse;
-    votes: Array<ExpandedVotes>;
-  };
-}
-
-interface ExpandedQuestion extends QuestionsResponse {
-  expand: {
-    answers: Array<ExpandedAnswers>;
-  };
-}
-
-interface ExpandedAction extends ActionsResponse {
-  expand: {
-    assignees: Array<UsersResponse>;
-  };
-}
-
-interface ExpandedRetrospective extends RetrospectivesResponse {
-  expand: {
-    organizer: UsersResponse;
-    attendees: Array<UsersResponse>;
-    questions: Array<ExpandedQuestion>;
-    actions: Array<ExpandedAction>;
-  };
-}
+import {Input, EditActionModal, EditAnswerModal} from '$lib/components';
+import {modalStore, type ModalSettings} from '@skeletonlabs/skeleton';
+import {onDestroy, onMount} from 'svelte';
+import {pb} from '$lib/pocketbase';
+import type {ExpandedVotes, ExpandedAnswers, ExpandedRetrospective} from './+page.server';
+import type {PageData} from './$types';
+import {isTrueObject} from '$lib/is-true-object';
+import {fetchRetro} from '$lib/fetch-retro';
 
 export let data: PageData;
 
-let actionStates = Object.values(ActionsStateOptions);
 let loading = false;
 let retrosUnsubscribe: () => Promise<void>;
 let questionsUnsubscribe: () => Promise<void>;
@@ -79,11 +38,12 @@ $: allAnswerIds = questions.map(question => question.answers).flat();
 $: showJoinButton = !isOrganizer && !isAttendee;
 $: showLeaveButton = !isOrganizer && isAttendee;
 
-async function refetchRetro(): Promise<ExpandedRetrospective> {
-  return pb.collection(Collections.Retrospectives).getOne<ExpandedRetrospective>(retro.id, {
-    expand:
-      'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
-  });
+function refetchRetro(): Promise<ExpandedRetrospective> {
+  return fetchRetro<ExpandedRetrospective>(
+    pb,
+    retro.id,
+    'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
+  );
 }
 
 onMount(async () => {
@@ -103,7 +63,6 @@ onMount(async () => {
     }
   });
 
-  // Do this better.
   answersUnsubscribe = await pb.collection(Collections.Answers).subscribe('*', ({record}) => {
     if (allAnswerIds.includes(record.id)) {
       void refetchRetro().then(res => (retro = res));
@@ -124,23 +83,22 @@ onDestroy(async () => {
   await actionsUnsubscribe?.();
 });
 
-interface NewAnswer {
-  questionId: string;
-  text: string;
-}
-
-let newAnswers: Array<NewAnswer> = [];
-
-function draftAnswer(questionId: string): void {
-  newAnswers = [...newAnswers, {questionId, text: ''}];
-}
-
 interface NewAction {
   text: string;
   assignees: Array<string>;
 }
 
+interface NewAnswer {
+  questionId: string;
+  text: string;
+}
+
 let newActions: Array<NewAction> = [];
+let newAnswers: Array<NewAnswer> = [];
+
+function draftAnswer(questionId: string): void {
+  newAnswers = [...newAnswers, {questionId, text: ''}];
+}
 
 function draftAction(): void {
   newActions = [...newActions, {assignees: [], text: ''}];
@@ -231,65 +189,82 @@ const submitLeaveRetro = (() => {
   };
 }) satisfies SubmitFunction;
 
-let isEditingAnswers: Record<string, string> = {};
 let isEditingActions: Record<string, ActionsResponse> = {};
 
-function setIsEditingAnswer({id, text}: {id: string; text: string}): void {
-  if (id in isEditingAnswers) {
-    delete isEditingAnswers[id];
-    isEditingAnswers = {...isEditingAnswers};
-  } else {
-    isEditingAnswers[id] = text;
-  }
+function showEditAnswerModal(answerIn: AnswersResponse): void {
+  const modal: ModalSettings = {
+    type: 'component',
+    component: {
+      ref: EditAnswerModal,
+      props: {
+        loading,
+        answer: answerIn,
+      },
+    },
+    response: (answerOut: AnswersResponse) => {
+      void updateAnswer(answerOut);
+    },
+  };
+
+  modalStore.trigger(modal);
 }
 
-function setIsEditingAction(action: ActionsResponse): void {
-  if (action.id in isEditingActions) {
-    delete isEditingActions[action.id];
-    isEditingActions = {...isEditingActions};
-  } else {
-    isEditingActions[action.id] = action;
-  }
+function showEditActionModal(actionIn: ActionsResponse): void {
+  const modal: ModalSettings = {
+    type: 'component',
+    component: {
+      ref: EditActionModal,
+      props: {
+        loading,
+        action: actionIn,
+        assigneeRecord,
+      },
+    },
+    response: (actionOut: ActionsResponse) => {
+      void updateAction(actionOut);
+    },
+  };
+
+  modalStore.trigger(modal);
 }
 
-async function updateAnswer(id: string): Promise<void> {
+async function updateAnswer(answer: AnswersResponse): Promise<void> {
   loading = true;
 
-  await fetch(`/api/retro/answers/${id}`, {
+  await fetch(`/api/retro/answers/${answer.id}`, {
     method: 'PUT',
-    body: JSON.stringify({text: isEditingAnswers[id]}),
+    body: JSON.stringify({text: answer.text}),
     headers: {'Content-Type': 'application/json'},
   });
-
-  delete isEditingAnswers[id];
-  isEditingAnswers = {...isEditingAnswers};
 
   loading = false;
 }
 
-async function updateAction(id: string): Promise<void> {
+async function updateAction(action: ActionsResponse): Promise<void> {
   loading = true;
 
-  const allMembers = [retro.expand.organizer, ...retro.expand.attendees];
-  const selectedUserames = Object.keys(assigneeRecord[id]).filter(f => assigneeRecord[id][f]);
-  const selectedIds = allMembers
-    .filter(member => selectedUserames.includes(member.username))
-    .map(member => member.id);
-  isEditingActions[id].assignees = selectedIds;
+  const x = assigneeRecord[action.id];
 
-  await fetch(`/api/retro/actions/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(isEditingActions[id]),
-    headers: {'Content-Type': 'application/json'},
-  });
+  if (isTrueObject(x)) {
+    const allMembers = [retro.expand.organizer, ...retro.expand.attendees];
+    const selectedUsernames = Object.keys(x).filter(f => x[f]);
 
-  delete isEditingActions[id];
-  isEditingActions = {...isEditingActions};
+    const selectedIds = allMembers
+      .filter(member => selectedUsernames.includes(member.username))
+      .map(member => member.id);
+    action.assignees = selectedIds;
+
+    await fetch(`/api/retro/actions/${action.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(action),
+      headers: {'Content-Type': 'application/json'},
+    });
+  }
 
   loading = false;
 }
 
-function deleteAnswer(id: string): void {
+function showDeleteAnswerModal(answer: AnswersResponse): void {
   loading = true;
 
   const modal: ModalSettings = {
@@ -299,16 +274,12 @@ function deleteAnswer(id: string): void {
     // TRUE if confirm pressed, FALSE if cancel pressed
     response: (r: boolean) => {
       if (r) {
-        void fetch(`/api/retro/answers/${id}`, {
+        void fetch(`/api/retro/answers/${answer.id}`, {
           method: 'DELETE',
           headers: {'Content-Type': 'application/json'},
         });
-
-        if (isEditingAnswers[id]) {
-          delete isEditingAnswers[id];
-          isEditingAnswers = {...isEditingAnswers};
-        }
       }
+
       loading = false;
     },
   };
@@ -368,7 +339,7 @@ function deleteRetro(): void {
 
 let assigneeRecord: Record<string, Record<string, boolean>>;
 
-$: assigneeRecord = retro.expand.actions.reduce((prev, curr) => {
+$: assigneeRecord = retro.expand.actions?.reduce((prev, curr) => {
   const {assignees, id} = curr;
   const allMembers = [retro.expand.organizer, ...retro.expand.attendees];
 
@@ -485,7 +456,7 @@ $: assigneeRecord = retro.expand.actions.reduce((prev, curr) => {
                       class="btn btn-sm variant-filled-primary ml-auto"
                       disabled={loading}
                       type="button"
-                      on:click={() => setIsEditingAnswer(answer)}
+                      on:click={() => showEditAnswerModal(answer)}
                     >
                       <span>
                         <Icon icon="mdi:pencil" />
@@ -498,7 +469,7 @@ $: assigneeRecord = retro.expand.actions.reduce((prev, curr) => {
                       class="btn btn-sm variant-filled-error ml-3"
                       disabled={loading}
                       type="button"
-                      on:click={() => deleteAnswer(answer.id)}
+                      on:click={() => showDeleteAnswerModal(answer)}
                     >
                       <span>
                         <Icon icon="mdi:delete-forever" />
@@ -507,35 +478,7 @@ $: assigneeRecord = retro.expand.actions.reduce((prev, curr) => {
                   {/if}
                 </section>
 
-                {#if !(answer.id in isEditingAnswers)}
-                  <p><strong>Text:</strong> {answer.text}</p>
-                {:else}
-                  <Input
-                    id="answer-{answer.id}"
-                    label="Answer"
-                    bind:value={isEditingAnswers[answer.id]}
-                    disabled={loading}
-                  />
-                  <section class="flex mb-3">
-                    <button
-                      class="btn btn-sm variant-filled-primary"
-                      disabled={loading}
-                      on:click={() => updateAnswer(answer.id)}
-                      type="button"
-                    >
-                      <span>Update</span>
-                    </button>
-
-                    <button
-                      class="btn btn-sm variant-filled-warning ml-3"
-                      disabled={loading}
-                      on:click={() => setIsEditingAnswer(answer)}
-                      type="button"
-                    >
-                      <span>Cancel</span>
-                    </button>
-                  </section>
-                {/if}
+                <p><strong>Text:</strong> {answer.text}</p>
 
                 <p>
                   <strong>Votes:</strong>
@@ -548,26 +491,28 @@ $: assigneeRecord = retro.expand.actions.reduce((prev, curr) => {
                   {/if}
                 </p>
 
-                {#if (isOrganizer || isAttendee) && hasVotedForAnswer(answer.expand.votes)}
-                  <button
-                    class="btn btn-sm variant-filled-warning mt-2"
-                    disabled={loading}
-                    type="button"
-                    on:click={() => removeVote(answer)}
-                  >
-                    <span>Remove vote</span>
-                    <span class="text-base"><Icon icon="mdi:thumbs-up-down" /></span>
-                  </button>
-                {:else if (isOrganizer || isAttendee) && !hasVotedForAnswer(answer.expand.votes)}
-                  <button
-                    class="btn btn-sm variant-filled-primary mt-2"
-                    disabled={loading}
-                    type="button"
-                    on:click={() => addVote(answer)}
-                  >
-                    <span>Add vote</span>
-                    <span class="text-base"><Icon icon="mdi:thumbs-up-down" /></span>
-                  </button>
+                {#if isOrganizer || isAttendee}
+                  {#if hasVotedForAnswer(answer.expand.votes)}
+                    <button
+                      class="btn btn-sm variant-filled-warning mt-2"
+                      disabled={loading}
+                      type="button"
+                      on:click={() => removeVote(answer)}
+                    >
+                      <span>Remove vote</span>
+                      <span class="text-base"><Icon icon="mdi:thumbs-up-down" /></span>
+                    </button>
+                  {:else}
+                    <button
+                      class="btn btn-sm variant-filled-primary mt-2"
+                      disabled={loading}
+                      type="button"
+                      on:click={() => addVote(answer)}
+                    >
+                      <span>Add vote</span>
+                      <span class="text-base"><Icon icon="mdi:thumbs-up-down" /></span>
+                    </button>
+                  {/if}
                 {/if}
 
                 <hr class="my-3" />
@@ -624,27 +569,17 @@ $: assigneeRecord = retro.expand.actions.reduce((prev, curr) => {
         class:border-l-yellow-500={!(index % 2)}
       >
         <section class="flex items-center">
-          {#if !(action.id in isEditingActions)}
-            <p>
-              <strong>State:</strong>
-              {action.state}
-            </p>
-          {:else}
-            <Select
-              id="action-state-{action.id}"
-              label="State"
-              bind:value={isEditingActions[action.id].state}
-              options={actionStates}
-              disabled={loading}
-            />
-          {/if}
+          <p>
+            <strong>State:</strong>
+            {action.state}
+          </p>
 
           {#if isOrganizer || isAttendee}
             <button
               class="btn btn-sm variant-filled-primary ml-auto"
               disabled={loading}
               type="button"
-              on:click={() => setIsEditingAction(action)}
+              on:click={() => showEditActionModal(action)}
             >
               <span>
                 <Icon icon="mdi:pencil" />
@@ -664,78 +599,22 @@ $: assigneeRecord = retro.expand.actions.reduce((prev, curr) => {
           {/if}
         </section>
 
-        {#if !(action.id in isEditingActions)}
-          <p>
-            <strong>Due:</strong>
-            {action.due ? new Date(action.due).toLocaleString('sv-SE') : ''}
-          </p>
-        {:else}
-          <Input
-            id="dateTime-{action.id}"
-            label="Due"
-            value={isEditingActions[action.id].due}
-            disabled={loading}
-            type="datetime-local"
-            on:change={event => (isEditingActions[action.id].due = event.target.value)}
-          />
-        {/if}
+        <p>
+          <strong>Due:</strong>
+          {action.due ? new Date(action.due).toLocaleString('sv-SE') : ''}
+        </p>
 
-        {#if !(action.id in isEditingActions)}
-          <p>
-            <strong>Assignees:</strong>
-            {#if action.expand.assignees}
-              {#each action.expand.assignees as assignee}
-                <span class="badge variant-filled">{assignee.username}</span>
-              {/each}
-            {/if}
-          </p>
-        {:else}
-          {#each Object.keys(assigneeRecord[action.id]) as f, index}
-            <span
-              class="chip {assigneeRecord[action.id][f] ? 'variant-filled' : 'variant-soft'}"
-              class:ml-3={index !== 0}
-              on:click={() => {
-                assigneeRecord[action.id][f] = !assigneeRecord[action.id][f];
-              }}
-              on:keypress
-            >
-              <span>{f}</span>
-            </span>
-          {/each}
-        {/if}
+        <p>
+          <strong>Assignees:</strong>
 
-        {#if !(action.id in isEditingActions)}
-          <p><strong>Text:</strong> {action.text}</p>
-        {:else}
-          <Input
-            id="action-{action.id}"
-            label="Action"
-            bind:value={isEditingActions[action.id].text}
-            disabled={loading}
-          />
-        {/if}
+          {#if action.expand.assignees}
+            {#each action.expand.assignees as assignee}
+              <span class="badge variant-filled">{assignee.username}</span>
+            {/each}
+          {/if}
+        </p>
 
-        {#if action.id in isEditingActions}
-          <section class="flex mb-3">
-            <button
-              class="btn btn-sm variant-filled-primary"
-              disabled={loading}
-              on:click={() => updateAction(action.id)}
-              type="button"
-            >
-              <span>Update</span>
-            </button>
-
-            <button
-              class="btn btn-sm variant-filled-warning ml-3"
-              disabled={loading}
-              on:click={() => setIsEditingAction(action)}
-              type="button"
-            >
-              <span>Cancel</span>
-            </button>
-          </section>
-        {/if}
+        <p><strong>Text:</strong> {action.text}</p>
       </article>
     {/each}
 

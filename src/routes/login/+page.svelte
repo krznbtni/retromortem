@@ -5,6 +5,7 @@ import Input from '$lib/components/common/Input.svelte';
 
 import type {OAuthLink} from '$lib/types/oauth';
 import type {ActionData, PageData} from './$types';
+import {ProgressRadial} from '@skeletonlabs/skeleton';
 
 export let form: ActionData;
 export let data: PageData;
@@ -85,9 +86,19 @@ const submitLogin = (() => {
             />
 
             <div class="w-full max-w-lg pt-3">
-              <button class="btn w-full variant-filled" type="submit" disabled={loading}
-                >Log in</button
-              >
+              <button class="btn w-full variant-filled" type="submit" disabled={loading}>
+                <span>Log in</span>
+                {#if loading}
+                  <span>
+                    <ProgressRadial
+                      width="w-4"
+                      stroke={100}
+                      meter="stroke-primary-500"
+                      track="stroke-primary-500/30"
+                    />
+                  </span>
+                {/if}
+              </button>
             </div>
           </form>
         </div>
@@ -100,10 +111,20 @@ const submitLogin = (() => {
           <button
             type="button"
             class="btn w-full variant-filled"
-            class:loading
+            disabled={loading}
             on:click={() => gotoAuthProvider(oauthLink)}
           >
-            Sign in with {oauthLink.name}
+            <span>Sign in with {oauthLink.name}</span>
+            {#if loading}
+              <span>
+                <ProgressRadial
+                  width="w-4"
+                  stroke={100}
+                  meter="stroke-primary-500"
+                  track="stroke-primary-500/30"
+                />
+              </span>
+            {/if}
           </button>
         {/each}
       </div>

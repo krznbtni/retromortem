@@ -57,7 +57,7 @@ export const actions: Actions = {
     // }
 
     try {
-      const r = await locals.pb.collection(Collections.Retrospectives).create(formDataParsed);
+      await locals.pb.collection(Collections.Retrospectives).create(formDataParsed);
     } catch (err) {
       const e = err as ClientResponseError;
       console.log('Error: ', e);

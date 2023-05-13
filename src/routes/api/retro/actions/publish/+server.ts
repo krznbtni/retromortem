@@ -14,7 +14,7 @@ interface PublishBody {
 export const POST = (async ({locals, request}) => {
   const body = (await request.json()) as PublishBody;
 
-  if (!body.assignees || !body.retroId || !body.text) {
+  if (!body.assignees || !body.retroId || !body.text || !body.text.length) {
     throw error(400, 'Invalid request body');
   }
 
