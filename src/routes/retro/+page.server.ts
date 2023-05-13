@@ -3,16 +3,16 @@ import type {Actions, PageServerLoad} from './$types';
 
 import type {ClientResponseError} from 'pocketbase';
 
-import {fetchUsersRetros} from '$lib/server/retro/fetch-users-retros';
+import {fetchUsersRetros} from '$lib/fetch-users-retros';
 import {Collections} from '$lib/types/pocketbase-types';
 
 export const load = (({locals}) => {
-  if (!locals.pb.authStore.isValid) {
+  if (!locals.pb.authStore.isValid || !locals.user?.id) {
     throw redirect(303, '/login');
   }
 
   return {
-    retros: fetchUsersRetros(locals),
+    retros: fetchUsersRetros(locals.pb, locals.user.id),
   };
 }) satisfies PageServerLoad;
 
