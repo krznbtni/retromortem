@@ -31,29 +31,22 @@ onDestroy(async () => {
   <h1 class="text-center">My Retros</h1>
   <hr />
 
-  <div class="m-auto w-full max-w-lg">
-    <ul class="list">
-      {#each retros as retro}
-        <RetroListItem {retro} />
-        <hr />
-      {/each}
-    </ul>
-  </div>
+  {#if retros.length === 0}
+    <div class="card text-center pb-3 lg:w-1/2 m-auto">
+      <header class="card-header text-xl">☹️ No retrospectives found, friend... ☹️</header>
 
-  <!-- <div class="w-full mt-4 flex flex-col items-center">
-    {#if data.retros.length === 0}
-      <p class="text-center text-3xl">☹️</p>
-      <p class="text-center text-3xl">No retrospectives found, friend.</p>
-      <a href="/retro/create" class="btn btn-primary max-w-md mt-4">Add One</a>
-    {:else}
-      <div class="flex flex-col w-full max-w-screen-sm">
-        <div class="divider m-0" />
-
-        {#each data.retros as retro}
+      <section class="text-xl">
+        <a href="/retro/create">Add One</a>
+      </section>
+    </div>
+  {:else}
+    <div class="m-auto w-full max-w-lg">
+      <ul class="list">
+        {#each retros as retro}
           <RetroListItem {retro} />
-          <div class="divider m-0" />
+          <hr />
         {/each}
-      </div>
-    {/if}
-  </div> -->
+      </ul>
+    </div>
+  {/if}
 </div>

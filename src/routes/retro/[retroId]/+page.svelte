@@ -15,6 +15,7 @@ import {isTrueObject} from '$lib/is-true-object';
 import {pb} from '$lib/pocketbase';
 import type {ExpandedVotes, ExpandedAnswers, ExpandedRetrospective} from './+page.server';
 import type {UsersResponse} from '$lib/types/pocketbase-types';
+import {page} from '$app/stores';
 
 export let data: PageData;
 
@@ -24,7 +25,11 @@ let questionsUnsubscribe: () => Promise<void>;
 let answersUnsubscribe: () => Promise<void>;
 let actionsUnsubscribe: () => Promise<void>;
 
-$: ({retro, isOrganizer, isAttendee, userId} = data);
+$: ({retro} = data);
+
+$: userId = $page.data.user?.id;
+$: isOrganizer = userId === retro.organizer;
+$: isAttendee = userId && retro.attendees?.includes(userId);
 
 $: actions = retro.expand.actions || [];
 $: attendees = retro.expand.attendees || [];

@@ -46,7 +46,7 @@ export interface ExpandedRetrospective extends RetrospectivesResponse {
   };
 }
 
-export const load = (async event => {
+export const load = (event => {
   const {locals, params} = event;
   const {retroId} = params;
 
@@ -54,19 +54,22 @@ export const load = (async event => {
     throw redirect(303, '/login');
   }
 
-  const retro = await fetchRetro<ExpandedRetrospective>(
-    locals.pb,
-    retroId,
-    'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
-  );
-
   return {
-    isOrganizer: locals.user.id === retro.organizer,
-    isAttendee: retro.attendees?.includes(locals.user.id),
-    userId: locals.user.id,
-    retro,
+    retro: fetchRetro<ExpandedRetrospective>(
+      locals.pb,
+      retroId,
+      'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
+    ),
   };
 }) satisfies PageServerLoad;
+
+function isOrganizer(userId: string, organizer: string): boolean {
+  return userId === organizer;
+}
+
+function isAttendee(userId: string, attendees: Array<string>): boolean {
+  return attendees.includes(userId);
+}
 
 export const actions: Actions = {
   joinRetro: async ({locals, params}) => {
@@ -77,10 +80,11 @@ export const actions: Actions = {
     try {
       const retro = await fetchRetro<ExpandedRetrospective>(locals.pb, params.retroId);
 
-      if (locals.user.id === retro.organizer || retro.attendees?.includes(locals.user.id)) {
-        return {
-          success: true,
-        };
+      if (
+        isOrganizer(locals.user.id, retro.organizer) ||
+        isAttendee(locals.user.id, retro.attendees)
+      ) {
+        return {success: true};
       }
 
       retro.attendees?.push(locals.user.id);
@@ -104,10 +108,11 @@ export const actions: Actions = {
     try {
       const retro = await fetchRetro<ExpandedRetrospective>(locals.pb, params.retroId);
 
-      if (locals.user.id === retro.organizer || !retro.attendees?.includes(locals.user.id)) {
-        return {
-          success: true,
-        };
+      if (
+        isOrganizer(locals.user.id, retro.organizer) ||
+        !isAttendee(locals.user.id, retro.attendees)
+      ) {
+        return {success: true};
       }
 
       retro.attendees = retro.attendees?.filter(attendee => attendee !== locals.user?.id);
