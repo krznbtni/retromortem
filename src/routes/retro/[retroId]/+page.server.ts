@@ -1,4 +1,4 @@
-import {fetchRetro} from '$lib/server/retro/fetch-retro';
+import {fetchRetro} from '$lib/fetch-retro';
 import type {Actions, PageServerLoad} from './$types';
 import {
   Collections,
@@ -7,17 +7,18 @@ import {
   type RetrospectivesResponse,
   type UsersResponse,
   type VotesResponse,
+  type ActionsResponse,
 } from '$lib/types/pocketbase-types';
 import {error, redirect} from '@sveltejs/kit';
 import type {ClientResponseError} from 'pocketbase';
 
-interface ExpandedVotes extends VotesResponse {
+export interface ExpandedVotes extends VotesResponse {
   expand: {
     user: UsersResponse;
   };
 }
 
-interface ExpandedAnswers extends AnswersResponse {
+export interface ExpandedAnswers extends AnswersResponse {
   expand: {
     creator: UsersResponse;
     votes: Array<ExpandedVotes>;
@@ -30,11 +31,18 @@ interface ExpandedQuestion extends QuestionsResponse {
   };
 }
 
-interface ExpandedRetrospective extends RetrospectivesResponse {
+interface ExpandedAction extends ActionsResponse {
+  expand: {
+    assignees: Array<UsersResponse>;
+  };
+}
+
+export interface ExpandedRetrospective extends RetrospectivesResponse {
   expand: {
     organizer: UsersResponse;
     attendees: Array<UsersResponse>;
     questions: Array<ExpandedQuestion>;
+    actions: Array<ExpandedAction>;
   };
 }
 
@@ -47,9 +55,9 @@ export const load = (async event => {
   }
 
   const retro = await fetchRetro<ExpandedRetrospective>(
-    locals,
+    locals.pb,
     retroId,
-    'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user',
+    'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
   );
 
   return {
@@ -67,7 +75,7 @@ export const actions: Actions = {
     }
 
     try {
-      const retro = await fetchRetro<ExpandedRetrospective>(locals, params.retroId);
+      const retro = await fetchRetro<ExpandedRetrospective>(locals.pb, params.retroId);
 
       if (locals.user.id === retro.organizer || retro.attendees?.includes(locals.user.id)) {
         return {
@@ -94,7 +102,7 @@ export const actions: Actions = {
     }
 
     try {
-      const retro = await fetchRetro<ExpandedRetrospective>(locals, params.retroId);
+      const retro = await fetchRetro<ExpandedRetrospective>(locals.pb, params.retroId);
 
       if (locals.user.id === retro.organizer || !retro.attendees?.includes(locals.user.id)) {
         return {

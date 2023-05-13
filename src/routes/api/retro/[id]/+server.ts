@@ -2,7 +2,7 @@ import {error, redirect} from '@sveltejs/kit';
 import type {RequestHandler} from './$types';
 import type {ClientResponseError} from 'pocketbase';
 
-import {fetchRetro} from '$lib/server/retro/fetch-retro';
+import {fetchRetro} from '$lib/fetch-retro';
 import {
   Collections,
   type AnswersResponse,
@@ -30,7 +30,7 @@ export const DELETE = (async ({locals, params}) => {
   // Find all questions belonging to this retro -> DELETE
   try {
     const retro = await fetchRetro<ExpandedRetrospective>(
-      locals,
+      locals.pb,
       params.id,
       'questions.answers.votes',
     );
