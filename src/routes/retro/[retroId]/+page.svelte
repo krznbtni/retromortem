@@ -258,7 +258,7 @@ async function updateAction(action: ActionsResponse | undefined): Promise<void> 
   const x = assigneeRecord[action.id];
 
   if (isTrueObject(x)) {
-    const allMembers = [retro.expand.organizer, ...retro.expand.attendees];
+    const allMembers = [retro.expand.organizer, ...(retro.expand.attendees || [])];
     const selectedUsernames = Object.keys(x).filter(f => x[f]);
 
     const selectedIds = allMembers
@@ -371,12 +371,6 @@ $: assigneeRecord = retro.expand.actions?.reduce((prev, curr) => {
 
 let inputChip = '';
 let inputChipList: Array<string> = [];
-
-// $: {
-//   inputChipList = attendees
-//     .map(attendee => attendee.username)
-//     .filter(username => username !== retro.expand.organizer.username);
-// }
 
 let autocompleteOptions: Array<{label: string; value: string}> = [];
 
