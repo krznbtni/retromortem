@@ -1,4 +1,4 @@
-import {POCKETBASE_URL} from '$env/static/private';
+import {PUBLIC_POCKETBASE_URL} from '$env/static/public';
 import {serializeNonPOJOs} from '$lib/serialize-non-pojos';
 import type {User} from '$lib/types/user';
 import type {Handle} from '@sveltejs/kit';
@@ -7,7 +7,7 @@ import PocketBase from 'pocketbase';
 
 /// Hooks are run on every request.
 export const handle = (async ({event, resolve}) => {
-  event.locals.pb = new PocketBase(POCKETBASE_URL);
+  event.locals.pb = new PocketBase(PUBLIC_POCKETBASE_URL);
 
   // Grab the cookie from the browser if we have one.
   const cookie = event.request.headers.get('cookie') || '';

@@ -7,14 +7,13 @@ import {Collections, type RetrospectivesResponse} from '$lib/types/pocketbase-ty
 
 interface PublishBody {
   assignees?: string;
-  retroId?: string;
   text?: string;
 }
 
-export const POST = (async ({locals, request}) => {
+export const POST = (async ({locals, request, params}) => {
   const body = (await request.json()) as PublishBody;
 
-  if (!body.assignees || !body.retroId || !body.text || !body.text.length) {
+  if (!body.assignees || !body.text || !body.text.length) {
     throw error(400, 'Invalid request body');
   }
 
@@ -29,11 +28,11 @@ export const POST = (async ({locals, request}) => {
 
     const retro = await locals.pb
       .collection(Collections.Retrospectives)
-      .getOne<RetrospectivesResponse>(body.retroId);
+      .getOne<RetrospectivesResponse>(params.retroId);
 
     retro.actions.push(createActionResponse.id);
 
-    await locals.pb.collection(Collections.Retrospectives).update(body.retroId, retro);
+    await locals.pb.collection(Collections.Retrospectives).update(params.retroId, retro);
   } catch (err) {
     const e = err as ClientResponseError;
     console.error('POST -> e:', e);

@@ -9,11 +9,6 @@ import {
   type VotesResponse,
 } from '$lib/types/pocketbase-types';
 
-interface VoteBody {
-  answerId?: string;
-  retroId?: string;
-}
-
 interface ExpandedVotes extends VotesResponse {
   expand: {
     user: UsersResponse;
@@ -41,23 +36,15 @@ function hasVotedForAnswer(userId: string, votes: Array<ExpandedVotes> | undefin
   }
 }
 
-export const POST = (async ({locals, request}) => {
-  const body = (await request.json()) as VoteBody;
-
+export const POST = (async ({locals, params}) => {
   if (!locals.user?.id) {
     throw redirect(303, '/login');
   }
 
   try {
-    if (!body.retroId) {
-      throw error(400, 'Invalid request body');
-    } else if (!body.answerId) {
-      throw error(400, 'Invalid request body');
-    }
-
     const retro = await locals.pb
       .collection(Collections.Retrospectives)
-      .getOne<RetrospectivesResponse>(body.retroId);
+      .getOne<RetrospectivesResponse>(params.retroId);
 
     const isParticipant =
       locals.user.id === retro.organizer || retro.attendees.includes(locals.user.id);
@@ -69,7 +56,56 @@ export const POST = (async ({locals, request}) => {
 
     const answer = await locals.pb
       .collection(Collections.Answers)
-      .getOne<ExpandedAnswers>(body.answerId, {expand: 'votes.user'});
+      .getOne<ExpandedAnswers>(params.answerId, {expand: 'votes.user'});
+
+    if (hasVotedForAnswer(locals.user.id, answer.expand.votes)) {
+      // TODO: properly handle this, my friend... exit early etc.
+      return json({success: false, message: 'BRO U HAS ALREADY votedZZZ'});
+    }
+
+    const createdVote = await locals.pb
+      .collection(Collections.Votes)
+      .create({user: locals.user.id});
+
+    answer.votes.push(createdVote.id);
+    await locals.pb.collection(Collections.Answers).update(params.answerId, answer);
+  } catch (err) {
+    const e = err as ClientResponseError;
+    console.error('POST -> e:', e);
+    console.error('POST -> e.response:', e.response);
+    throw error(e.status, e.message);
+  }
+
+  throw redirect(303, '/');
+}) satisfies RequestHandler;
+
+export const DELETE = (async ({locals, params}) => {
+  if (!locals.user?.id) {
+    throw redirect(303, '/login');
+  }
+
+  try {
+    if (!params.retroId) {
+      throw error(400, 'Invalid request body');
+    } else if (!params.answerId) {
+      throw error(400, 'Invalid request body');
+    }
+
+    const retro = await locals.pb
+      .collection(Collections.Retrospectives)
+      .getOne<RetrospectivesResponse>(params.retroId);
+
+    const isParticipant =
+      locals.user.id === retro.organizer || retro.attendees.includes(locals.user.id);
+
+    // TODO: properly handle this, my friend... exit early etc.
+    if (!isParticipant) {
+      return json({success: false, message: 'BRO U MUZT BE PARTIZIPANT'});
+    }
+
+    const answer = await locals.pb
+      .collection(Collections.Answers)
+      .getOne<ExpandedAnswers>(params.answerId, {expand: 'votes.user'});
 
     if (!hasVotedForAnswer(locals.user.id, answer.expand.votes)) {
       // TODO: properly handle this, my friend... exit early etc.
