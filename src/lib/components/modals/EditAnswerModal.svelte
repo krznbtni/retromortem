@@ -1,5 +1,5 @@
 <script lang="ts">
-import {Input} from '$lib/components';
+import Input from '$lib/components/common/Input.svelte';
 import {modalStore} from '@skeletonlabs/skeleton';
 import type {AnswersResponse} from '$lib/types/pocketbase-types';
 import type {ModalProps} from '@skeletonlabs/skeleton/dist/utilities/Modal/Modal.svelte';

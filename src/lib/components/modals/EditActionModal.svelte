@@ -1,7 +1,8 @@
 <script lang="ts">
-import {Input, Select} from '$lib/components';
-import {modalStore} from '@skeletonlabs/skeleton';
 import {ActionsStateOptions, type ActionsResponse} from '$lib/types/pocketbase-types';
+import {modalStore} from '@skeletonlabs/skeleton';
+import Input from '$lib/components/common/Input.svelte';
+import Select from '$lib/components/common/Select.svelte';
 import type {ModalProps} from '@skeletonlabs/skeleton/dist/utilities/Modal/Modal.svelte';
 
 export let action: ActionsResponse;
