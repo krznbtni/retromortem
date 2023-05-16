@@ -6,5 +6,4 @@ export {default as TextArea} from '$lib/components/common/TextArea.svelte';
 export {default as NavBar} from '$lib/components/layout/NavBar.svelte';
 export {default as EditActionModal} from '$lib/components/modals/EditActionModal.svelte';
 export {default as EditAnswerModal} from '$lib/components/modals/EditAnswerModal.svelte';
-export {default as RetroListItem} from '$lib/components/retro/RetroListItem.svelte';
 export {default as RetroQuestions} from '$lib/components/retro/RetroQuestions.svelte';

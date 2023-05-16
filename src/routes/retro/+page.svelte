@@ -1,12 +1,13 @@
 <script lang="ts">
+import {onDestroy, onMount} from 'svelte';
+import {page} from '$app/stores';
 import type {PageData} from './$types';
 
-import RetroListItem from '$lib/components/retro/RetroListItem.svelte';
-import {onDestroy, onMount} from 'svelte';
-import {pb} from '$lib/pocketbase';
-import {fetchUsersRetros} from '$lib/fetch-users-retros';
-import {page} from '$app/stores';
+import Icon from '@iconify/svelte';
+
 import {Collections} from '$lib/types/pocketbase-types';
+import {fetchUsersRetros} from '$lib/fetch-users-retros';
+import {pb} from '$lib/pocketbase';
 
 export let data: PageData;
 
@@ -40,13 +41,26 @@ onDestroy(async () => {
       </section>
     </div>
   {:else}
-    <div class="m-auto w-full max-w-lg">
-      <ul class="list">
-        {#each retros as retro}
-          <RetroListItem {retro} />
-          <hr />
+    <nav class="list-nav max-w-lg m-auto">
+      <ul>
+        {#each retros as retro (retro.id)}
+          <li>
+            <a href="/retro/{retro.id}">
+              <span class="badge bg-primary-500">
+                {#if retro.state === 'draft'}
+                  <Icon icon="mdi:file" />
+                {:else if retro.state === 'published'}
+                  <Icon icon="mdi:calendar-clock" />
+                {:else if retro.state === 'finished'}
+                  <Icon icon="mdi:check" />
+                {/if}
+              </span>
+
+              <span class="flex-auto">{retro.title}</span>
+            </a>
+          </li>
         {/each}
       </ul>
-    </div>
+    </nav>
   {/if}
 </div>
