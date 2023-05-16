@@ -90,12 +90,22 @@ onMount(async () => {
     .filter(username => username !== retro.expand.organizer.username);
 });
 
-onDestroy(async () => {
-  await retrosUnsubscribe?.();
-  await questionsUnsubscribe?.();
-  await answersUnsubscribe?.();
-  await actionsUnsubscribe?.();
+let hasDeletedRetro = false;
+
+onDestroy(() => {
+  if (!hasDeletedRetro) {
+    void unsubscribeFromAll();
+  }
 });
+
+async function unsubscribeFromAll() {
+  return Promise.all([
+    retrosUnsubscribe,
+    questionsUnsubscribe,
+    answersUnsubscribe,
+    actionsUnsubscribe,
+  ]);
+}
 
 interface NewAction {
   text: string;
@@ -198,8 +208,6 @@ const submitLeaveRetro = (() => {
     loading = false;
   };
 }) satisfies SubmitFunction;
-
-let isEditingActions: Record<string, ActionsResponse> = {};
 
 function showEditAnswerModal(answerIn: AnswersResponse): void {
   const modal: ModalSettings = {
@@ -315,11 +323,6 @@ function deleteAction(id: string): void {
           method: 'DELETE',
           headers: {'Content-Type': 'application/json'},
         });
-
-        if (isEditingActions[id]) {
-          delete isEditingActions[id];
-          isEditingActions = {...isEditingActions};
-        }
       }
       loading = false;
     },
@@ -337,9 +340,13 @@ function deleteRetro(): void {
     body: 'Are you sure you wish to delete this retro?',
     response: (r: boolean) => {
       if (r) {
-        void fetch(`/api/retro/${retro.id}`, {
-          method: 'DELETE',
-          headers: {'Content-Type': 'application/json'},
+        hasDeletedRetro = true;
+
+        void unsubscribeFromAll().then(() => {
+          void fetch(`/api/retro/${retro.id}`, {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+          });
         });
       }
 

@@ -1,7 +1,7 @@
 import {PUBLIC_POCKETBASE_URL} from '$env/static/public';
 import {serializeNonPOJOs} from '$lib/serialize-non-pojos';
-import type {User} from '$lib/types/user';
 import type {Handle} from '@sveltejs/kit';
+import type {User} from '$lib/types/user';
 
 import PocketBase from 'pocketbase';
 
@@ -35,10 +35,6 @@ export const handle = (async ({event, resolve}) => {
   const response = await resolve(event);
 
   const isProd = process.env.NODE_ENV === 'production';
-  console.log('handle -> isProd:', isProd);
-
-  // response.headers.set('set-cookie', event.locals.pb.authStore.exportToCookie({secure: false}));
-  // response.headers.set('set-cookie', event.locals.pb.authStore.exportToCookie());
 
   response.headers.set(
     'set-cookie',
