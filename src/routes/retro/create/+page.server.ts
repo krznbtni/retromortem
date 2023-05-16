@@ -48,22 +48,17 @@ export const actions: Actions = {
       formDataParsed.questions = questions;
     }
 
-    // TODO: validation
-    // if (errors) {
-    //   return fail(400, {
-    //     data: rest,
-    //     errors: errors.fieldErrors,
-    //   });
-    // }
+    let retroId: string | undefined;
 
     try {
-      await locals.pb.collection(Collections.Retrospectives).create(formDataParsed);
+      const result = await locals.pb.collection(Collections.Retrospectives).create(formDataParsed);
+      retroId = result.id;
     } catch (err) {
       const e = err as ClientResponseError;
       console.log('Error: ', e);
       throw error(e.status, e.message);
     }
 
-    throw redirect(303, '/retro');
+    throw redirect(303, `/retro/${retroId}`);
   },
 };
