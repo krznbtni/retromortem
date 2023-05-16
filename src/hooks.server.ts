@@ -34,8 +34,16 @@ export const handle = (async ({event, resolve}) => {
   // Anything else that happens in the app, server side, happens inside the resolve.
   const response = await resolve(event);
 
+  const isProd = process.env.NODE_ENV === 'production';
+  console.log('handle -> isProd:', isProd);
+
   // response.headers.set('set-cookie', event.locals.pb.authStore.exportToCookie({secure: false}));
-  response.headers.set('set-cookie', event.locals.pb.authStore.exportToCookie());
+  // response.headers.set('set-cookie', event.locals.pb.authStore.exportToCookie());
+
+  response.headers.set(
+    'set-cookie',
+    event.locals.pb.authStore.exportToCookie({secure: isProd, sameSite: 'Lax'}),
+  );
 
   return response;
 }) satisfies Handle;
