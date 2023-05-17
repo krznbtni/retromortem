@@ -72,34 +72,6 @@ function isAttendee(userId: string, attendees: Array<string>): boolean {
 }
 
 export const actions: Actions = {
-  joinRetro: async ({locals, params}) => {
-    if (!locals.user) {
-      throw redirect(303, '/login');
-    }
-
-    try {
-      const retro = await fetchRetro<ExpandedRetrospective>(locals.pb, params.retroId);
-
-      if (
-        isOrganizer(locals.user.id, retro.organizer) ||
-        isAttendee(locals.user.id, retro.attendees)
-      ) {
-        return {success: true};
-      }
-
-      retro.attendees?.push(locals.user.id);
-
-      await locals.pb.collection(Collections.Retrospectives).update(params.retroId, retro);
-    } catch (err) {
-      const e = err as ClientResponseError;
-      console.error('actions -> joinRetro: -> e:', e);
-      throw error(e.status, e.message);
-    }
-
-    return {
-      success: true,
-    };
-  },
   leaveRetro: async ({locals, params}) => {
     if (!locals.user) {
       throw redirect(303, '/login');

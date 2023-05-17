@@ -45,7 +45,6 @@ $: scheduled = retro.scheduled
   : 'No scheduled date';
 
 $: allAnswerIds = questions.map(question => question.answers).flat();
-$: showJoinButton = !isOrganizer && !isAttendee;
 $: showLeaveButton = !isOrganizer && isAttendee;
 
 function refetchRetro(): Promise<ExpandedRetrospective> {
@@ -179,21 +178,6 @@ async function removeVote(answer: ExpandedAnswers): Promise<void> {
     method: 'DELETE',
   });
 }
-
-// TODO: handle errors/failure
-const submitJoinRetro = (() => {
-  if (loading) {
-    return;
-  }
-
-  loading = true;
-
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  return async ({update}) => {
-    await update();
-    loading = false;
-  };
-}) satisfies SubmitFunction;
 
 const submitLeaveRetro = (() => {
   if (loading) {
