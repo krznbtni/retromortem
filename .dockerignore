@@ -1,0 +1,17 @@
+.eslintrc.cjs
+.eslintignore
+.git
+.github
+.gitignore
+.husky
+.npmrc
+.nvmrc
+.prettierrc
+.prettierignore
+.svelte-kit
+.vscode
+README.md
+
+node_modules
+playwright.config.ts
+tests

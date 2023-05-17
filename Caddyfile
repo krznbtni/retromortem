@@ -1,0 +1,15 @@
+retromortem.dev {
+  # node-app:4000 is the docker container running the Node.js application
+  # in our case it's exposed on port 4000
+  reverse_proxy retromortem:3000  {
+    header_down Strict-Transport-Security max-age=31536000;
+  }
+}
+
+pb.retromortem.dev {
+  # node-app:4000 is the docker container running the Node.js application
+  # in our case it's exposed on port 4000
+  reverse_proxy pb:8090  {
+    header_down Strict-Transport-Security max-age=31536000;
+  }
+}

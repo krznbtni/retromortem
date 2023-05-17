@@ -1,0 +1,46 @@
+version: '3.7'
+
+services:
+  caddy:
+    image: caddy:2.6.4
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - $PWD/Caddyfile:/etc/caddy/Caddyfile
+      - $PWD/site:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+
+  retromortem:
+    container_name: retromortem
+    # The name of the image that will be created when building this container
+    image: retromortem
+    build:
+      context: .
+      dockerfile: ./docker/app.Dockerfile
+    user: 'node'
+    environment:
+      # Internal server error messages will not send stacktrace to the browser in production
+      - NODE_ENV=development
+      # Sets the timezone of the containers OS
+      - TZ=Stockholm/Europe
+    # Points to a file with the sensitive environment variables
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  pb:
+    container_name: pb
+    image: pb
+    build:
+      context: .
+      dockerfile: ./docker/pb.Dockerfile
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+    external: true
+  caddy_config:
