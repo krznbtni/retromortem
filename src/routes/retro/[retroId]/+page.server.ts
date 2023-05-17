@@ -46,23 +46,6 @@ export interface ExpandedRetrospective extends RetrospectivesResponse {
   };
 }
 
-export const load = (event => {
-  const {locals, params} = event;
-  const {retroId} = params;
-
-  if (!locals.user) {
-    throw redirect(303, '/login');
-  }
-
-  return {
-    retro: fetchRetro<ExpandedRetrospective>(
-      locals.pb,
-      retroId,
-      'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
-    ),
-  };
-}) satisfies PageServerLoad;
-
 function isOrganizer(userId: string, organizer: string): boolean {
   return userId === organizer;
 }
@@ -70,6 +53,36 @@ function isOrganizer(userId: string, organizer: string): boolean {
 function isAttendee(userId: string, attendees: Array<string>): boolean {
   return attendees.includes(userId);
 }
+
+export const load = (async event => {
+  const {locals, params} = event;
+  const {retroId} = params;
+
+  if (!locals.user || !locals.pb.authStore.isValid) {
+    throw redirect(303, '/login');
+  }
+
+  const retro = await fetchRetro<ExpandedRetrospective>(
+    locals.pb,
+    retroId,
+    'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
+  );
+
+  const x = isOrganizer(locals.user.id, retro.organizer);
+  const y = isAttendee(locals.user.id, retro.attendees);
+  console.log({x, y});
+
+  if (
+    !isOrganizer(locals.user.id, retro.organizer) &&
+    !isAttendee(locals.user.id, retro.attendees)
+  ) {
+    throw redirect(303, '/retro');
+  }
+
+  return {
+    retro,
+  };
+}) satisfies PageServerLoad;
 
 export const actions: Actions = {
   leaveRetro: async ({locals, params}) => {
