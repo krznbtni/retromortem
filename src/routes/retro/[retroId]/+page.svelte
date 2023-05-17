@@ -479,19 +479,6 @@ $: handleSomething(inputChip);
   <div class="flex w-full items-center">
     <h2>Attendees</h2>
 
-    {#if showJoinButton}
-      <form method="POST" class="ml-4" use:enhance={submitJoinRetro}>
-        <button
-          class="btn btn-sm variant-filled-primary"
-          disabled={loading}
-          formaction="?/joinRetro"
-        >
-          <span>Join</span>
-          <span class="text-base"><Icon icon="mdi:account-plus" /></span>
-        </button>
-      </form>
-    {/if}
-
     {#if showLeaveButton}
       <form method="POST" class="ml-4" use:enhance={submitLeaveRetro}>
         <button
