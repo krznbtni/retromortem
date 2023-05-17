@@ -27,9 +27,9 @@ const config = {
       preloadStrategy: 'preload-mjs',
     },
 
-    version: {
-      pollInterval: 30,
-    },
+    // version: {
+    //   pollInterval: 30,
+    // },
 
     typescript: {
       config: conf => {
