@@ -3,8 +3,7 @@ import '@skeletonlabs/skeleton/themes/theme-skeleton.css';
 import '@skeletonlabs/skeleton/styles/all.css';
 import '../app.postcss';
 
-// import {beforeNavigate} from '$app/navigation';
-// import {updated} from '$app/stores';
+// importp {updated} from '$app/stores';
 
 import {AppBar, AppShell, Drawer, Modal, drawerStore} from '@skeletonlabs/skeleton';
 import Navbar from '$lib/components/layout/NavBar.svelte';
