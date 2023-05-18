@@ -25,7 +25,7 @@ services:
     user: 'node'
     environment:
       # Internal server error messages will not send stacktrace to the browser in production
-      - NODE_ENV=development
+      - NODE_ENV=production
       # Sets the timezone of the containers OS
       - TZ=Stockholm/Europe
     # Points to a file with the sensitive environment variables
