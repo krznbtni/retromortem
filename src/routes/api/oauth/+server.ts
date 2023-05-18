@@ -32,7 +32,9 @@ export const GET = (async ({url, locals, cookies}) => {
   try {
     await locals.pb
       .collection('users')
-      .authWithOAuth2(provider.name, code, provider.codeVerifier, redirectUrl);
+      .authWithOAuth2(provider.name, code, provider.codeVerifier, redirectUrl, {
+        emailVisibility: true,
+      });
   } catch (error) {
     console.error('/api/oauth -> GET -> error:', error);
   }
