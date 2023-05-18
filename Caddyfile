@@ -1,0 +1,28 @@
+(common) {
+  # disable FLoC tracking
+  Permissions-Policy interest-cohort=()
+
+  # enable HSTS
+  Strict-Transport-Security max-age=31536000;
+
+  # disable clients from sniffing the media type
+  X-Content-Type-Options nosniff
+
+  # clickjacking protection
+  X-Frame-Options DENY
+
+  # keep referrer data off of HTTP connections
+  Referrer-Policy no-referrer-when-downgrade
+}
+
+retromortem.dev {
+  reverse_proxy retromortem:3000  {
+    import common
+  }
+}
+
+pb.retromortem.dev {
+  reverse_proxy pb:8090  {
+    import common
+  }
+}
