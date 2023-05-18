@@ -68,10 +68,6 @@ export const load = (async event => {
     'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
   );
 
-  const x = isOrganizer(locals.user.id, retro.organizer);
-  const y = isAttendee(locals.user.id, retro.attendees);
-  console.log({x, y});
-
   if (
     !isOrganizer(locals.user.id, retro.organizer) &&
     !isAttendee(locals.user.id, retro.attendees)

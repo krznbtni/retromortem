@@ -9,9 +9,13 @@ import {
 
 interface RetroInvitationPayload extends CommonPayload {
   action_url: string;
-  recipientUsername: string;
-  senderUsername: string;
+  recipient_username: string;
+  sender_username: string;
 }
+
+const {DEV} = import.meta.env;
+
+const baseUrl = DEV ? 'http://localhost:3000' : 'https://retromortem.dev';
 
 export async function sendRetroInvitationEmail({
   to,
@@ -26,9 +30,9 @@ export async function sendRetroInvitationEmail({
 }): Promise<MessageSendingResponse | void> {
   const payload: RetroInvitationPayload = {
     ...commonPayload,
-    action_url: `https://retromortem.dev/retro/${retroId}`,
-    recipientUsername,
-    senderUsername,
+    action_url: `${baseUrl}/retro/${retroId}`,
+    recipient_username: recipientUsername,
+    sender_username: senderUsername,
   };
 
   try {

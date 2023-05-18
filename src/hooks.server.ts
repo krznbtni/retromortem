@@ -5,7 +5,9 @@ import type {User} from '$lib/types/user';
 
 import PocketBase from 'pocketbase';
 
-/// Hooks are run on every request.
+const {PROD} = import.meta.env;
+
+// Hooks are run on every request.
 export const handle = (async ({event, resolve}) => {
   event.locals.pb = new PocketBase(PUBLIC_POCKETBASE_URL);
 
@@ -34,11 +36,9 @@ export const handle = (async ({event, resolve}) => {
   // Anything else that happens in the app, server side, happens inside the resolve.
   const response = await resolve(event);
 
-  const isProd = process.env.NODE_ENV === 'production';
-
   response.headers.set(
     'set-cookie',
-    event.locals.pb.authStore.exportToCookie({secure: isProd, sameSite: 'Lax'}),
+    event.locals.pb.authStore.exportToCookie({secure: PROD, sameSite: 'Lax'}),
   );
 
   return response;

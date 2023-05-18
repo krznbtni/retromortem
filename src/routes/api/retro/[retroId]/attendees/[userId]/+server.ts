@@ -7,7 +7,7 @@ import {Collections, type UsersResponse} from '$lib/types/pocketbase-types';
 import {fetchRetro} from '$lib/fetch-retro';
 import {sendRetroInvitationEmail} from '$lib/server/postmark/send-retro-invitation-email';
 
-const SEND_EMAIL = false;
+const {PROD} = import.meta.env;
 
 export const POST = (async ({locals, params}) => {
   if (!locals.user?.id || !locals.pb.authStore.isValid) {
@@ -26,14 +26,14 @@ export const POST = (async ({locals, params}) => {
     retro.attendees.push(params.userId);
     await locals.pb.collection(Collections.Retrospectives).update(params.retroId, retro);
 
-    const recipientUser = await locals.pb
-      .collection(Collections.Users)
-      .getOne<UsersResponse>(params.userId);
-    const sendingUser = await locals.pb
-      .collection(Collections.Users)
-      .getOne<UsersResponse>(locals.user.id);
+    if (PROD) {
+      const recipientUser = await locals.pb
+        .collection(Collections.Users)
+        .getOne<UsersResponse>(params.userId);
+      const sendingUser = await locals.pb
+        .collection(Collections.Users)
+        .getOne<UsersResponse>(locals.user.id);
 
-    if (SEND_EMAIL) {
       await sendRetroInvitationEmail({
         to: recipientUser.email,
         recipientUsername: recipientUser.username,
@@ -41,6 +41,8 @@ export const POST = (async ({locals, params}) => {
         retroId: params.retroId,
       });
     }
+
+    return json({success: true});
   } catch (e) {
     const err = e as ClientResponseError;
     console.error(`/retro/${params.retroId}/attendees/${params.userId} -> error: `, err);
@@ -51,6 +53,4 @@ export const POST = (async ({locals, params}) => {
 
     throw error(err.status, err.message);
   }
-
-  throw redirect(303, '/retro');
 }) satisfies RequestHandler;
