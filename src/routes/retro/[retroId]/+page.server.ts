@@ -46,23 +46,6 @@ export interface ExpandedRetrospective extends RetrospectivesResponse {
   };
 }
 
-export const load = (event => {
-  const {locals, params} = event;
-  const {retroId} = params;
-
-  if (!locals.user) {
-    throw redirect(303, '/login');
-  }
-
-  return {
-    retro: fetchRetro<ExpandedRetrospective>(
-      locals.pb,
-      retroId,
-      'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
-    ),
-  };
-}) satisfies PageServerLoad;
-
 function isOrganizer(userId: string, organizer: string): boolean {
   return userId === organizer;
 }
@@ -71,35 +54,33 @@ function isAttendee(userId: string, attendees: Array<string>): boolean {
   return attendees.includes(userId);
 }
 
+export const load = (async event => {
+  const {locals, params} = event;
+  const {retroId} = params;
+
+  if (!locals.user || !locals.pb.authStore.isValid) {
+    throw redirect(303, '/login');
+  }
+
+  const retro = await fetchRetro<ExpandedRetrospective>(
+    locals.pb,
+    retroId,
+    'organizer,attendees,questions.answers.creator,questions.answers.votes,questions.answers.votes.user,actions.assignees',
+  );
+
+  if (
+    !isOrganizer(locals.user.id, retro.organizer) &&
+    !isAttendee(locals.user.id, retro.attendees)
+  ) {
+    throw redirect(303, '/retro');
+  }
+
+  return {
+    retro,
+  };
+}) satisfies PageServerLoad;
+
 export const actions: Actions = {
-  joinRetro: async ({locals, params}) => {
-    if (!locals.user) {
-      throw redirect(303, '/login');
-    }
-
-    try {
-      const retro = await fetchRetro<ExpandedRetrospective>(locals.pb, params.retroId);
-
-      if (
-        isOrganizer(locals.user.id, retro.organizer) ||
-        isAttendee(locals.user.id, retro.attendees)
-      ) {
-        return {success: true};
-      }
-
-      retro.attendees?.push(locals.user.id);
-
-      await locals.pb.collection(Collections.Retrospectives).update(params.retroId, retro);
-    } catch (err) {
-      const e = err as ClientResponseError;
-      console.error('actions -> joinRetro: -> e:', e);
-      throw error(e.status, e.message);
-    }
-
-    return {
-      success: true,
-    };
-  },
   leaveRetro: async ({locals, params}) => {
     if (!locals.user) {
       throw redirect(303, '/login');

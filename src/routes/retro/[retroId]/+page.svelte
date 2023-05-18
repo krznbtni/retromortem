@@ -45,8 +45,11 @@ $: scheduled = retro.scheduled
   : 'No scheduled date';
 
 $: allAnswerIds = questions.map(question => question.answers).flat();
-$: showJoinButton = !isOrganizer && !isAttendee;
 $: showLeaveButton = !isOrganizer && isAttendee;
+
+$: if (!isOrganizer && !isAttendee) {
+  void goto('/retro');
+}
 
 function refetchRetro(): Promise<ExpandedRetrospective> {
   return fetchRetro<ExpandedRetrospective>(
@@ -61,7 +64,15 @@ onMount(async () => {
     .collection(Collections.Retrospectives)
     .subscribe(retro.id, ({action}) => {
       if (action === 'update') {
-        void refetchRetro().then(res => (retro = res));
+        void refetchRetro()
+          .then(res => (retro = res))
+          .then(() => updateAutocompleteOptions(inputChip))
+          .then(() => {
+            inputChipList = attendees
+              .map(attendee => attendee.username)
+              .filter(username => username !== retro.expand.organizer.username);
+            inputChipList = [...inputChipList];
+          });
       } else if (action === 'delete') {
         void goto('/retro');
       }
@@ -179,21 +190,6 @@ async function removeVote(answer: ExpandedAnswers): Promise<void> {
     method: 'DELETE',
   });
 }
-
-// TODO: handle errors/failure
-const submitJoinRetro = (() => {
-  if (loading) {
-    return;
-  }
-
-  loading = true;
-
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  return async ({update}) => {
-    await update();
-    loading = false;
-  };
-}) satisfies SubmitFunction;
 
 const submitLeaveRetro = (() => {
   if (loading) {
@@ -387,9 +383,12 @@ async function onInputChipSelect(
   event: CustomEvent<{label: string; value: string}>,
 ): Promise<void> {
   inputChipList = [...inputChipList, event.detail.label];
-  retro.attendees?.push(event.detail.value);
-  retro.attendees = [...retro.attendees];
-  await pb.collection(Collections.Retrospectives).update(retro.id, retro);
+
+  await fetch(`/api/retro/${retro.id}/attendees/${event.detail.value}`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+  });
+
   await updateAutocompleteOptions(inputChip);
 }
 
@@ -479,19 +478,6 @@ $: handleSomething(inputChip);
   <div class="flex w-full items-center">
     <h2>Attendees</h2>
 
-    {#if showJoinButton}
-      <form method="POST" class="ml-4" use:enhance={submitJoinRetro}>
-        <button
-          class="btn btn-sm variant-filled-primary"
-          disabled={loading}
-          formaction="?/joinRetro"
-        >
-          <span>Join</span>
-          <span class="text-base"><Icon icon="mdi:account-plus" /></span>
-        </button>
-      </form>
-    {/if}
-
     {#if showLeaveButton}
       <form method="POST" class="ml-4" use:enhance={submitLeaveRetro}>
         <button
@@ -506,24 +492,31 @@ $: handleSomething(inputChip);
     {/if}
   </div>
 
-  <InputChip
-    bind:input={inputChip}
-    bind:value={inputChipList}
-    name="attendee-chips"
-    on:click={onChipClick}
-  />
+  {#if isOrganizer}
+    <InputChip
+      bind:input={inputChip}
+      bind:value={inputChipList}
+      name="attendee-chips"
+      on:click={onChipClick}
+    />
 
-  {#if inputChip.length}
-    <div class="card w-full max-h-48 p-4 overflow-y-auto">
-      {#key autocompleteOptions}
-        <Autocomplete
-          bind:input={inputChip}
-          options={autocompleteOptions}
-          denylist={inputChipList}
-          on:selection={onInputChipSelect}
-        />
-      {/key}
-    </div>
+    {#if inputChip.length}
+      <div class="card w-full max-h-48 p-4 overflow-y-auto">
+        {#key autocompleteOptions}
+          <Autocomplete
+            bind:input={inputChip}
+            options={autocompleteOptions}
+            denylist={inputChipList}
+            on:selection={onInputChipSelect}
+          />
+        {/key}
+      </div>
+    {/if}
+  {:else}
+    <!-- here chips -->
+    {#each attendees as attendee}
+      <span class="chip variant-filled">{attendee.username}</span>
+    {/each}
   {/if}
 
   <div class="flex flex-col w-full">

@@ -27,7 +27,6 @@ export const DELETE = (async ({locals, params}) => {
     throw redirect(303, '/login');
   }
 
-  // Find all questions belonging to this retro -> DELETE
   try {
     const retro = await fetchRetro<ExpandedRetrospective>(
       locals.pb,
